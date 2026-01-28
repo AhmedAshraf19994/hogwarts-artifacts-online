@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 public class ArtifactController {
@@ -20,8 +22,6 @@ public class ArtifactController {
             @PathVariable ("artifactId") int artifactId
     ) {
         ArtifactResponseDto artifactResponseDto = artifactService.findArtifactById(artifactId);
-
-
         return Response
                 .<ArtifactResponseDto>builder()
                 .flag(true)
@@ -31,8 +31,17 @@ public class ArtifactController {
                 .build();
     }
 
-    @GetMapping("/")
-    public String test () {
-        return "server is working";
+    @GetMapping("/api/v1/artifacts")
+    public Response<List<ArtifactResponseDto>> test () {
+        List<ArtifactResponseDto> artifacts = artifactService.findAllArtifacts();
+
+        return Response
+                .<List<ArtifactResponseDto>>builder()
+                .flag(true)
+                .code(HttpStatus.OK.value())
+                .message("Find All Artifacts Success")
+                .data(artifacts)
+                .build();
+
     }
 }

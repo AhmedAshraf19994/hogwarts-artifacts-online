@@ -1,5 +1,6 @@
 package com.ahmed.hogwarts_artifacts_online.artifact;
 
+import com.ahmed.hogwarts_artifacts_online.artifact.dto.ArtifactResponseDto;
 import com.ahmed.hogwarts_artifacts_online.wizard.Wizard;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,6 +10,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,11 +24,21 @@ class ArtifactServiceTest {
 
     @InjectMocks
     ArtifactService artifactService;
+    List<Artifact> artifacts = new ArrayList<>();
 
 
     @BeforeEach
     void setUp() {
+
         MockitoAnnotations.openMocks(this);
+        Artifact artifactOne = Artifact.builder().name("Resurrection Stone")
+                .description("the Resurrection Stone had the power to bring back lost loved ones.")
+                .imageUrl("imageUrl").build();
+        Artifact artifactTwo = Artifact.builder().name("Cloak of Invisibility")
+                .description("magical garment that renders the wearer unseen.")
+                .imageUrl("imageUrl").build();
+        artifacts.add(artifactTwo);
+        artifacts.add(artifactOne);
     }
 
     @AfterEach
@@ -47,7 +60,7 @@ class ArtifactServiceTest {
         when(artifactRepository.findById(1)).thenReturn(Optional.of(artifact));
 
         //when
-        Artifact returnedArtifact = artifactService.findArtifactById(1);
+        ArtifactResponseDto returnedArtifact = artifactService.findArtifactById(1);
 
         //then
         assertEquals(returnedArtifact, artifact);
@@ -71,6 +84,17 @@ class ArtifactServiceTest {
         //then
         assertEquals("could not find artifact with id 1", exception.getMessage());
 
+
+    }
+
+    @Test
+    void findAllArtifactsSuccess () {
+        //given
+        when(artifactRepository.findAll()).thenReturn(artifacts);
+        //when
+        List<ArtifactResponseDto> returnedArtifacts = artifactService.findAllArtifacts();
+        //then
+        assertEquals(returnedArtifacts.size(),artifacts.size());
 
     }
 }

@@ -11,12 +11,21 @@ public class ArtifactMapper {
     private final WizardMapper wizardMapper;
 
     public ArtifactResponseDto toArtifactResponseDto (Artifact artifact) {
-        return new ArtifactResponseDto(
+        if (artifact.getWizard() == null) {
+            return new ArtifactResponseDto(
+                    artifact.getId(),
+                    artifact.getName(),
+                    artifact.getDescription(),
+                    artifact.getImageUrl(),
+                    null
+            );
+        }
+         return new ArtifactResponseDto(
                 artifact.getId(),
                 artifact.getName(),
                 artifact.getDescription(),
                 artifact.getImageUrl(),
-                artifact.getWizard() != null ? wizardMapper.toWizardResponseDto(artifact.getWizard()) : null
+                wizardMapper.toWizardResponseDto(artifact.getWizard())
         );
 
     }

@@ -7,6 +7,6 @@ public record ArtifactResponseDto (
         String name,
         String description,
         String imageUrl,
-        WizardResponseDto wizardResponseDto
+        WizardResponseDto  wizardResponseDto
 ){
 }
