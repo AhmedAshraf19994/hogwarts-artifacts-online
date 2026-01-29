@@ -1,6 +1,8 @@
 package com.ahmed.hogwarts_artifacts_online.artifact;
 
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.ArtifactResponseDto;
+import com.ahmed.hogwarts_artifacts_online.artifact.dto.CreateArtifactDto;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -9,6 +11,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ArtifactService {
 
     private final ArtifactRepository artifactRepository;
@@ -27,4 +30,17 @@ public class ArtifactService {
                 .collect(Collectors.toList());
 
     }
+
+    public ArtifactResponseDto saveArtifact(CreateArtifactDto createArtifactDto) {
+        Artifact artifact = artifactMapper.toArtifact(createArtifactDto);
+        Artifact savedArtifact = artifactRepository.save(artifact);
+        return artifactMapper.toArtifactResponseDto(savedArtifact);
+    }
+
+    public ArtifactResponseDto updateArtifact(int artifactId, UpdateArtifactDto updateArtifactDto) {
+        return null;
+    }
 }
+
+
+

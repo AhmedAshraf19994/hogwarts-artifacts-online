@@ -1,6 +1,7 @@
 package com.ahmed.hogwarts_artifacts_online.artifact;
 
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.ArtifactResponseDto;
+import com.ahmed.hogwarts_artifacts_online.artifact.dto.CreateArtifactDto;
 import com.ahmed.hogwarts_artifacts_online.wizard.Wizard;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,18 +10,23 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class ArtifactServiceTest {
     @Mock
     ArtifactRepository artifactRepository;
+
+    @Mock
+    ArtifactMapper artifactMapper;
+
+
 
     @InjectMocks
     ArtifactService artifactService;
@@ -96,5 +102,50 @@ class ArtifactServiceTest {
         //then
         assertEquals(returnedArtifacts.size(),artifacts.size());
 
+    }
+
+    @Test
+    void saveArtifactSuccess () {
+
+        //given
+        CreateArtifactDto createArtifactDto = new CreateArtifactDto(
+                "The Pensieve",
+                "A basin used to review memories.",
+                "imageUrl"
+        );
+        Artifact artifact = Artifact.builder()
+                .id(7)
+                .name("The Pensieve")
+                .description("A basin used to review memories.")
+                .imageUrl("imageUrl").build();
+        ArtifactResponseDto artifactResponseDto = new ArtifactResponseDto(
+                7,
+                "The Pensieve",
+                "A basin used to review memories.",
+                "imageUrl",
+                null
+        );
+        when(artifactMapper.toArtifact(Mockito.any(CreateArtifactDto.class))).thenReturn(artifact);
+        when(artifactRepository.save(Mockito.any(Artifact.class))).thenReturn(artifact);
+        when(artifactMapper.toArtifactResponseDto(Mockito.any(Artifact.class))).thenReturn(artifactResponseDto);
+
+        //when
+        ArtifactResponseDto returnedArtifact = artifactService.saveArtifact(createArtifactDto);
+
+        //then
+        assertEquals(artifact.getId(), returnedArtifact.id());
+        assertEquals(artifact.getName(), returnedArtifact.name());
+        assertEquals(artifact.getDescription(), returnedArtifact.description());
+        assertEquals(artifact.getImageUrl(), returnedArtifact.imageUrl());
+        verify(artifactRepository, times(1)).save(artifact);
+    }
+
+    @Test
+    void saveArtifactFailInDb () {
+        //given
+
+        //when
+
+        //then
     }
 }

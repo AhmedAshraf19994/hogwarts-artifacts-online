@@ -1,9 +1,11 @@
 package com.ahmed.hogwarts_artifacts_online.artifact;
 
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.ArtifactResponseDto;
+import com.ahmed.hogwarts_artifacts_online.artifact.dto.CreateArtifactDto;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.HttpStatus;
@@ -12,6 +14,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +35,10 @@ class ArtifactControllerTest {
     ArtifactService artifactService;
 
     @MockitoBean
-            ArtifactMapper artifactMapper;
+    ArtifactMapper artifactMapper;
+
+    @Autowired
+    ObjectMapper objectMapper;
 
     List<Artifact> artifacts = new ArrayList<>();
     List<ArtifactResponseDto> returnedArtifacts = new ArrayList<>();
@@ -114,4 +120,60 @@ class ArtifactControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.OK.value()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data").isArray());
     }
+
+    @Test
+    void saveArtifactSuccess () throws Exception {
+        //given
+        CreateArtifactDto createArtifactDto = new CreateArtifactDto(
+                "Resurrection Stone",
+                "the Resurrection Stone had the power to bring back lost loved ones.",
+                "imageUrl");
+        ArtifactResponseDto artifactResponseDto = new ArtifactResponseDto(
+                1,
+                "Resurrection Stone",
+                "the Resurrection Stone had the power to bring back lost loved ones.",
+                "imageUrl",
+                null);
+        when(artifactService.saveArtifact(Mockito.any(CreateArtifactDto.class))).thenReturn(artifactResponseDto);
+        String serializedPayLoad = objectMapper.writeValueAsString(createArtifactDto);
+
+
+        //when then
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/artifacts")
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(serializedPayLoad))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(true))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Save Artifact Success"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.OK.value()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.id").value(artifactResponseDto.id()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.name").value(artifactResponseDto.name()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.description").value(artifactResponseDto.description()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.imageUrl").value(artifactResponseDto.imageUrl()));
+
+    }
+
+    @Test
+    void saveArtifactFailWithBadInput () throws Exception {
+        //given
+        CreateArtifactDto createArtifactDto = new CreateArtifactDto(null,null, null);
+        String serializedPayLoad = objectMapper.writeValueAsString(createArtifactDto);
+
+
+        //when
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/artifacts")
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(serializedPayLoad))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(false))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("provided arguments are not valid, check data for details"))
+
+        ;
+
+        //then
+    }
+
 }

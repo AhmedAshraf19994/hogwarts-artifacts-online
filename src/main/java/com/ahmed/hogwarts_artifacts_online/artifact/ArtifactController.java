@@ -1,13 +1,13 @@
 package com.ahmed.hogwarts_artifacts_online.artifact;
 
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.ArtifactResponseDto;
+import com.ahmed.hogwarts_artifacts_online.artifact.dto.CreateArtifactDto;
 import com.ahmed.hogwarts_artifacts_online.system.Response;
 import com.ahmed.hogwarts_artifacts_online.wizard.Wizard;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -42,6 +42,27 @@ public class ArtifactController {
                 .message("Find All Artifacts Success")
                 .data(artifacts)
                 .build();
+    }
+    @PostMapping("/api/v1/artifacts")
+    public Response<ArtifactResponseDto> saveArtifact (
+            @RequestBody @Valid CreateArtifactDto createArtifactDto
+            ) {
+        ArtifactResponseDto artifactResponseDto = artifactService.saveArtifact(createArtifactDto);
+        return Response
+                .<ArtifactResponseDto>builder()
+                .flag(true)
+                .code(HttpStatus.OK.value())
+                .message("Save Artifact Success")
+                .data(artifactResponseDto)
+                .build();
+    }
+    @PutMapping("/api/v1/artifacts/{artifactId}")
+    public Response<ArtifactResponseDto> updateArtifact (
+            @PathVariable("artifactId") int artifactId,
+            @Valid @RequestBody  UpdateArtifactDto updateArtifactDto
+
+    ) {
+        ArtifactResponseDto artifactResponseDto = artifactService.updateArtifact();
 
     }
 }
