@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -233,6 +233,32 @@ class ArtifactControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(false))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.NOT_FOUND.value()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("could not find artifact with id 1"));
+    }
+
+    @Test
+    void deleteArtifactSuccess () throws Exception {
+        int artifactId = 1;
+        doNothing().when(artifactService).deleteArtifact(1);
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/artifacts/{artifactId}",1)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(true))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Delete Artifact Success"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.OK.value()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data").isEmpty());
+    }
+
+    @Test
+    void deleteArtifactFail () throws Exception {
+        int artifactId = 1;
+        doThrow(new ArtifactNotFoundException(artifactId)).when(artifactService).deleteArtifact(artifactId);
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/artifacts/{artifactId}",1)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(false))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("could not find artifact with id 1"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.NOT_FOUND.value()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data").isEmpty());
     }
 
 }

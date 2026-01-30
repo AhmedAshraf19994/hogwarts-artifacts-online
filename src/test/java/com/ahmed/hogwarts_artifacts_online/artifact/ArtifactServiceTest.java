@@ -61,15 +61,25 @@ class ArtifactServiceTest {
                 .description("stone that gives special power for healing")
                 .imageUrl("imageUrl")
                 .build();
+        ArtifactResponseDto artifactResponseDto = new ArtifactResponseDto(
+                1,
+                "stone",
+                "stone that gives special power for healing",
+                "imageUrl",
+                null);
         Wizard wizard = Wizard.builder().id(1).name("Harry Potter").build();
         artifact.setWizard(wizard);
         when(artifactRepository.findById(1)).thenReturn(Optional.of(artifact));
+        when(artifactMapper.toArtifactResponseDto(Mockito.any(Artifact.class))).thenReturn(artifactResponseDto);
 
         //when
         ArtifactResponseDto returnedArtifact = artifactService.findArtifactById(1);
 
         //then
-        assertEquals(returnedArtifact, artifact);
+        assertEquals(returnedArtifact.id(), artifact.getId());
+        assertEquals(returnedArtifact.description(), artifactResponseDto.description());
+        assertEquals(returnedArtifact.name(), artifactResponseDto.name());
+        assertEquals(returnedArtifact.imageUrl(), artifactResponseDto.imageUrl());
         Mockito.verify(artifactRepository, times(1)).findById(1);
 
 
@@ -193,6 +203,47 @@ class ArtifactServiceTest {
         });
         //then
         assertEquals("could not find artifact with id 1",exception.getMessage());
+    }
+
+    @Test
+    void shouldDeleteArtifactSuccess () {
+        //when
+        Artifact artifact = Artifact.builder()
+                .id(1)
+                .name("The Pensieve")
+                .description("A basin used to review memories.")
+                .imageUrl("imageUrl").build();
+        when(artifactRepository.findById(Mockito.any(Integer.class))).thenReturn(Optional.of(artifact));
+        doNothing().when(artifactRepository).deleteById(artifact.getId());
+
+        // when
+        artifactService.deleteArtifact(artifact.getId());
+        //then
+        verify(artifactRepository, times(1)).deleteById(artifact.getId());
+
+
+
+
+    }@Test
+    void shouldDeleteArtifactFail () {
+        //when
+        Artifact artifact = Artifact.builder()
+                .id(1)
+                .name("The Pensieve")
+                .description("A basin used to review memories.")
+                .imageUrl("imageUrl").build();
+        when(artifactRepository.findById(Mockito.any(Integer.class))).thenReturn(Optional.empty());
+
+        // when
+        assertThrows(ArtifactNotFoundException.class,() -> {
+            artifactService.deleteArtifact(artifact.getId());
+        });
+        //then
+        verify(artifactRepository, times(1)).findById(artifact.getId());
+
+
+
+
     }
     }
 

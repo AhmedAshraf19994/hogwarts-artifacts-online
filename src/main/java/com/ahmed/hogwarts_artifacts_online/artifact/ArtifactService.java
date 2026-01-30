@@ -38,7 +38,20 @@ public class ArtifactService {
     }
 
     public ArtifactResponseDto updateArtifact(int artifactId, CreateArtifactDto createArtifactDto) {
-        return artifactRepository.findById(artifactId).map(artifactMapper::toArtifactResponseDto).orElseThrow(() -> new ArtifactNotFoundException(artifactId));
+        return artifactRepository.findById(artifactId).map(artifact -> {
+            artifact.setName(createArtifactDto.name());
+            artifact.setDescription(createArtifactDto.description());
+            artifact.setImageUrl(createArtifactDto.imageUrl());
+            Artifact updatedArtifact = artifactRepository.save(artifact);
+            return artifactMapper.toArtifactResponseDto(updatedArtifact);
+        }).orElseThrow(() -> new ArtifactNotFoundException(artifactId));
+    }
+
+    public void deleteArtifact (int artifactId) {
+         Artifact artifact = artifactRepository.findById(artifactId).
+        orElseThrow(() -> new ArtifactNotFoundException(artifactId));
+         artifactRepository.deleteById(artifact.getId());
+
     }
 }
 

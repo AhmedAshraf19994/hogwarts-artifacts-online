@@ -13,11 +13,11 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("artifacts")
 public class ArtifactController {
 
     private final ArtifactService artifactService;
-
-    @GetMapping("/api/v1/artifacts/{artifactId}")
+    @GetMapping("/{artifactId}")
     public Response<ArtifactResponseDto> findArtifactById (
             @PathVariable ("artifactId") int artifactId
     ) {
@@ -31,7 +31,7 @@ public class ArtifactController {
                 .build();
     }
 
-    @GetMapping("/api/v1/artifacts")
+    @GetMapping("")
     public Response<List<ArtifactResponseDto>> test () {
         List<ArtifactResponseDto> artifacts = artifactService.findAllArtifacts();
 
@@ -43,7 +43,8 @@ public class ArtifactController {
                 .data(artifacts)
                 .build();
     }
-    @PostMapping("/api/v1/artifacts")
+
+    @PostMapping("")
     public Response<ArtifactResponseDto> saveArtifact (
             @RequestBody @Valid CreateArtifactDto createArtifactDto
             ) {
@@ -56,7 +57,8 @@ public class ArtifactController {
                 .data(artifactResponseDto)
                 .build();
     }
-    @PutMapping("/api/v1/artifacts/{artifactId}")
+
+    @PutMapping("/{artifactId}")
     public Response<ArtifactResponseDto> updateArtifact (
             @PathVariable("artifactId") int artifactId,
             @Valid @RequestBody  CreateArtifactDto updateArtifactDto
@@ -71,5 +73,17 @@ public class ArtifactController {
                 .data(artifactResponseDto)
                 .build() ;
 
+    }
+
+    @DeleteMapping("/{artifactId}")
+    public Response<?> deleteArtifact (@PathVariable("artifactId") int artifactId) {
+        artifactService.deleteArtifact(artifactId);
+        return Response
+                .builder()
+                .flag(true)
+                .message("Delete Artifact Success")
+                .code(HttpStatus.OK.value())
+                .data(null)
+                .build();
     }
 }
