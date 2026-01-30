@@ -141,11 +141,59 @@ class ArtifactServiceTest {
     }
 
     @Test
-    void saveArtifactFailInDb () {
+    void updateArtifactSuccess () {
         //given
+        CreateArtifactDto createArtifactDto = new CreateArtifactDto(
+                "updated name",
+                "A basin used to review memories.",
+                "imageUrl"
+        );
+        Artifact artifact = Artifact.builder()
+                .id(7)
+                .name("The Pensieve")
+                .description("A basin used to review memories.")
+                .imageUrl("imageUrl").build();
+        Artifact updatedArtifact = Artifact.builder()
+                .id(7)
+                .name("updated name")
+                .description("A basin used to review memories.")
+                .imageUrl("imageUrl").build();
+        ArtifactResponseDto artifactResponseDto = new ArtifactResponseDto(
+                7,
+                "updated name",
+                "A basin used to review memories.",
+                "imageUrl",
+                null
+        );
+        when(artifactRepository.findById(Mockito.any(Integer.class))).thenReturn(Optional.of(artifact));
+        when(artifactRepository.save(Mockito.any(Artifact.class))).thenReturn(updatedArtifact);
+        when(artifactMapper.toArtifactResponseDto(Mockito.any(Artifact.class))).thenReturn(artifactResponseDto);
 
         //when
-
+        ArtifactResponseDto result = artifactService.updateArtifact(7,createArtifactDto);
         //then
+        assertEquals(createArtifactDto.name(), result.name());
+        assertEquals(createArtifactDto.description(), result.description());
+        assertEquals(createArtifactDto.imageUrl(), result.imageUrl());
     }
-}
+
+    @Test
+    void updateArtifactFail() {
+        //given
+        CreateArtifactDto createArtifactDto = new CreateArtifactDto(
+                "The Pensieve",
+                "A basin used to review memories.",
+                "imageUrl"
+        );
+        when(artifactRepository.findById(1)).thenReturn(Optional.empty());
+
+        Exception exception = assertThrows(ArtifactNotFoundException.class,() -> {
+
+            artifactService.updateArtifact(1,createArtifactDto);
+        });
+        //then
+        assertEquals("could not find artifact with id 1",exception.getMessage());
+    }
+    }
+
+

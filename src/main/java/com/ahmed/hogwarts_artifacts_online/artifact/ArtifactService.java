@@ -37,8 +37,8 @@ public class ArtifactService {
         return artifactMapper.toArtifactResponseDto(savedArtifact);
     }
 
-    public ArtifactResponseDto updateArtifact(int artifactId, UpdateArtifactDto updateArtifactDto) {
-        return null;
+    public ArtifactResponseDto updateArtifact(int artifactId, CreateArtifactDto createArtifactDto) {
+        return artifactRepository.findById(artifactId).map(artifactMapper::toArtifactResponseDto).orElseThrow(() -> new ArtifactNotFoundException(artifactId));
     }
 }
 

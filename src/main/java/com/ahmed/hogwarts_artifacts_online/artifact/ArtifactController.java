@@ -59,10 +59,17 @@ public class ArtifactController {
     @PutMapping("/api/v1/artifacts/{artifactId}")
     public Response<ArtifactResponseDto> updateArtifact (
             @PathVariable("artifactId") int artifactId,
-            @Valid @RequestBody  UpdateArtifactDto updateArtifactDto
+            @Valid @RequestBody  CreateArtifactDto updateArtifactDto
 
     ) {
-        ArtifactResponseDto artifactResponseDto = artifactService.updateArtifact();
+        ArtifactResponseDto artifactResponseDto = artifactService.updateArtifact(artifactId, updateArtifactDto);
+        return Response
+                .<ArtifactResponseDto>builder()
+                .flag(true)
+                .code(HttpStatus.OK.value())
+                .message("Update Artifact Success")
+                .data(artifactResponseDto)
+                .build() ;
 
     }
 }

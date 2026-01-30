@@ -161,7 +161,7 @@ class ArtifactControllerTest {
         String serializedPayLoad = objectMapper.writeValueAsString(createArtifactDto);
 
 
-        //when
+        //when then
         mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/artifacts")
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -173,7 +173,66 @@ class ArtifactControllerTest {
 
         ;
 
-        //then
+
+    }
+
+    @Test
+    void updateArtifactSuccess () throws Exception {
+        //given
+        CreateArtifactDto createArtifactDto = new CreateArtifactDto(
+                "updated name",
+                "A basin used to review memories.",
+                "imageUrl"
+        );
+        ArtifactResponseDto artifactResponseDto = new ArtifactResponseDto(
+                1,
+                "updated name",
+                "A basin used to review memories.",
+                "imageUrl",
+                null
+
+        );
+        when(artifactService.updateArtifact(artifactResponseDto.id(),createArtifactDto)).thenReturn(artifactResponseDto);
+        String serializedPayLoad = objectMapper.writeValueAsString(createArtifactDto);
+
+        //when then
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/artifacts/{artifactId}",artifactResponseDto.id())
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(serializedPayLoad))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(true))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.OK.value()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Update Artifact Success"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.id").value(artifactResponseDto.id()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.name").value(createArtifactDto.name()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.description").value(createArtifactDto.description()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.imageUrl").value(createArtifactDto.imageUrl()));
+
+
+    }
+
+    @Test
+    void updateArtifactFail () throws Exception {
+        CreateArtifactDto createArtifactDto = new CreateArtifactDto(
+                "updated name",
+                "A basin used to review memories.",
+                "imageUrl"
+        );
+        int artifactId = 1;
+
+        when(artifactService.updateArtifact(artifactId,createArtifactDto)).thenThrow(new ArtifactNotFoundException(artifactId));
+        String serializedPayLoad = objectMapper.writeValueAsString(createArtifactDto);
+
+        //when then
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/artifacts/{artifactId}",artifactId)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(serializedPayLoad))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(false))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.NOT_FOUND.value()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("could not find artifact with id 1"));
     }
 
 }
