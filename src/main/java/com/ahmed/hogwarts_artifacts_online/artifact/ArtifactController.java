@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("artifacts")
+@RequestMapping("/api/v1/artifacts")
 public class ArtifactController {
 
     private final ArtifactService artifactService;
