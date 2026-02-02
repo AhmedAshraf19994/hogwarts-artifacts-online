@@ -2,6 +2,7 @@ package com.ahmed.hogwarts_artifacts_online.artifact;
 
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.ArtifactResponseDto;
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.CreateArtifactDto;
+import com.ahmed.hogwarts_artifacts_online.system.exceptions.ObjectNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ public class ArtifactService {
 
     public ArtifactResponseDto findArtifactById (int id) {
         Artifact artifact = artifactRepository.findById(id)
-                .orElseThrow(() ->  new ArtifactNotFoundException(id));
+                .orElseThrow(() ->  new ObjectNotFoundException("artifact", id));
         return artifactMapper.toArtifactResponseDto(artifact);
     }
 
@@ -44,12 +45,12 @@ public class ArtifactService {
             artifact.setImageUrl(createArtifactDto.imageUrl());
             Artifact updatedArtifact = artifactRepository.save(artifact);
             return artifactMapper.toArtifactResponseDto(updatedArtifact);
-        }).orElseThrow(() -> new ArtifactNotFoundException(artifactId));
+        }).orElseThrow(() -> new ObjectNotFoundException("artifact", artifactId));
     }
 
     public void deleteArtifact (int artifactId) {
          Artifact artifact = artifactRepository.findById(artifactId).
-        orElseThrow(() -> new ArtifactNotFoundException(artifactId));
+        orElseThrow(() -> new ObjectNotFoundException("artifact", artifactId));
          artifactRepository.deleteById(artifact.getId());
 
     }

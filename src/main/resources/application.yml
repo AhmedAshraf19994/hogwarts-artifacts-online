@@ -1,3 +1,7 @@
 server:
   port: 9090
 
+api:
+  endpoint:
+    base-url: "/api/v1"
+
