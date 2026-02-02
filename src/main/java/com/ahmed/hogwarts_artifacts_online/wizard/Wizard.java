@@ -25,7 +25,7 @@ public class Wizard {
     private String name;
 
     @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "wizard")
-    private List<Artifact> artifacts ;
+    private List<Artifact> artifacts = new  ArrayList<>();
 
     public void addArtifact(Artifact artifact) {
         if(this.artifacts == null) {
@@ -37,5 +37,10 @@ public class Wizard {
 
     public int getNumberOfArtifacts() {
         return artifacts.size();
+    }
+
+    public void removeAllArtifacts() {
+        this.artifacts.stream().forEach(artifact -> artifact.setWizard(null));
+        this.artifacts = new ArrayList<>();
     }
 }

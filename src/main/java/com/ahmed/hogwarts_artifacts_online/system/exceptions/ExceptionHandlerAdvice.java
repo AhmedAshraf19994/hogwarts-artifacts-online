@@ -1,7 +1,6 @@
 package com.ahmed.hogwarts_artifacts_online.system.exceptions;
 
 
-import com.ahmed.hogwarts_artifacts_online.artifact.ArtifactNotFoundException;
 import com.ahmed.hogwarts_artifacts_online.system.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
@@ -18,9 +17,9 @@ import java.util.Map;
 @RestControllerAdvice
 public class ExceptionHandlerAdvice {
 
-    @ExceptionHandler(ArtifactNotFoundException.class)
+    @ExceptionHandler(ObjectNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    Response<?> handleArtifactNotFoundException (ArtifactNotFoundException exception) {
+    Response<?> handleObjectNotFoundException (ObjectNotFoundException exception) {
     return Response
             .builder()
             .flag(false)
@@ -50,4 +49,6 @@ public class ExceptionHandlerAdvice {
                 .build();
 
     }
+
+
 }

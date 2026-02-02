@@ -2,6 +2,7 @@ package com.ahmed.hogwarts_artifacts_online.artifact;
 
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.ArtifactResponseDto;
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.CreateArtifactDto;
+import com.ahmed.hogwarts_artifacts_online.system.exceptions.ObjectNotFoundException;
 import com.ahmed.hogwarts_artifacts_online.wizard.Wizard;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,7 +11,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,7 +92,7 @@ class ArtifactServiceTest {
         when(artifactRepository.findById(Mockito.any(Integer.class))).thenReturn(Optional.empty());
 
         //when
-        Exception exception = assertThrows(ArtifactNotFoundException.class,() -> {
+        Exception exception = assertThrows(ObjectNotFoundException.class,() -> {
 
             artifactService.findArtifactById(1);
         });
@@ -197,7 +197,7 @@ class ArtifactServiceTest {
         );
         when(artifactRepository.findById(1)).thenReturn(Optional.empty());
 
-        Exception exception = assertThrows(ArtifactNotFoundException.class,() -> {
+        Exception exception = assertThrows(ObjectNotFoundException.class,() -> {
 
             artifactService.updateArtifact(1,createArtifactDto);
         });
@@ -224,7 +224,9 @@ class ArtifactServiceTest {
 
 
 
-    }@Test
+    }
+
+    @Test
     void shouldDeleteArtifactFail () {
         //when
         Artifact artifact = Artifact.builder()
@@ -235,7 +237,7 @@ class ArtifactServiceTest {
         when(artifactRepository.findById(Mockito.any(Integer.class))).thenReturn(Optional.empty());
 
         // when
-        assertThrows(ArtifactNotFoundException.class,() -> {
+        assertThrows(ObjectNotFoundException.class,() -> {
             artifactService.deleteArtifact(artifact.getId());
         });
         //then

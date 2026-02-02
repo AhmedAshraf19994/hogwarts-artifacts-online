@@ -2,11 +2,13 @@ package com.ahmed.hogwarts_artifacts_online.artifact;
 
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.ArtifactResponseDto;
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.CreateArtifactDto;
+import com.ahmed.hogwarts_artifacts_online.system.exceptions.ObjectNotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -37,11 +39,15 @@ class ArtifactControllerTest {
     @MockitoBean
     ArtifactMapper artifactMapper;
 
+    @Value("${api.endpoint.base-url}")
+    String baseUrl;
+
     @Autowired
     ObjectMapper objectMapper;
 
     List<Artifact> artifacts = new ArrayList<>();
     List<ArtifactResponseDto> returnedArtifacts = new ArrayList<>();
+
 
 
     @BeforeEach
@@ -63,42 +69,41 @@ class ArtifactControllerTest {
     void tearDown() {
     }
 
-//    @Test
-//    void findArtifactByIdSuccess () throws Exception {
-//        //given
-//        Artifact artifact = Artifact
-//                .builder()
-//                .id(1)
-//                .name("sword")
-//                .description("some description")
-//                .imageUrl("imageUrl").build();
-//        ArtifactResponseDto returnArtifact = artifactMapper.toArtifactResponseDto(artifact);
-//        when(artifactService.findArtifactById(artifact.getId())).thenReturn(returnArtifact);
-//
-//        //when and then
-//        mockMvc.perform(MockMvcRequestBuilders
-//                .get("/api/v1/artifacts/{artifactId}",1)
-//                .accept(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.flag").value(true))
-//                .andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
-//                .andExpect(jsonPath("$.message").value("Find Artifact Success"))
-//                .andExpect(jsonPath("$.data.id").value(1))
-//                .andExpect(jsonPath("$.data.name").value("sword"))
-//                .andExpect(jsonPath("$.data.description").value("some description"))
-//                .andExpect(jsonPath("$.data.imageUrl").value("imageUrl"))
-//
-//        ;
-//
-//    }
-//
+    @Test
+    void findArtifactByIdSuccess () throws Exception {
+        //given
+        ArtifactResponseDto artifactResponseDto = new ArtifactResponseDto(1,
+                "Resurrection Stone",
+                "the Resurrection Stone had the power to bring back lost loved ones.",
+                "imageUrl",
+                null);
+
+        when(artifactService.findArtifactById(Mockito.any(Integer.class))).thenReturn(artifactResponseDto);
+
+        //when and then
+        mockMvc.perform(MockMvcRequestBuilders
+                .get(baseUrl + "/artifacts/{artifactId}",1)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.flag").value(true))
+                .andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
+                .andExpect(jsonPath("$.message").value("Find Artifact Success"))
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.name").value("Resurrection Stone"))
+                .andExpect(jsonPath("$.data.description").value("the Resurrection Stone had the power to bring back lost loved ones."))
+                .andExpect(jsonPath("$.data.imageUrl").value("imageUrl"))
+
+        ;
+
+    }
+
     @Test
     void findArtifactByIdFail () throws Exception {
         //given
-        when(artifactService.findArtifactById(1)).thenThrow(new ArtifactNotFoundException(1));
+        when(artifactService.findArtifactById(1)).thenThrow(new ObjectNotFoundException("artifact",1));
 
         //when then
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/artifacts/{artifactId}", 1)
+        mockMvc.perform(MockMvcRequestBuilders.get(baseUrl + "/artifacts/{artifactId}", 1)
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(false))
@@ -113,7 +118,7 @@ class ArtifactControllerTest {
         when(artifactService.findAllArtifacts()).thenReturn(returnedArtifacts)
         ;
         //when then
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/artifacts").accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(MockMvcRequestBuilders.get(baseUrl + "/artifacts").accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(true))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Find All Artifacts Success"))
@@ -139,7 +144,7 @@ class ArtifactControllerTest {
 
 
         //when then
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/artifacts")
+        mockMvc.perform(MockMvcRequestBuilders.post(baseUrl + "/artifacts")
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(serializedPayLoad))
@@ -162,7 +167,7 @@ class ArtifactControllerTest {
 
 
         //when then
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/artifacts")
+        mockMvc.perform(MockMvcRequestBuilders.post(baseUrl + "/artifacts")
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(serializedPayLoad))
@@ -196,7 +201,7 @@ class ArtifactControllerTest {
         String serializedPayLoad = objectMapper.writeValueAsString(createArtifactDto);
 
         //when then
-        mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/artifacts/{artifactId}",artifactResponseDto.id())
+        mockMvc.perform(MockMvcRequestBuilders.put(baseUrl + "/artifacts/{artifactId}",artifactResponseDto.id())
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(serializedPayLoad))
@@ -221,11 +226,11 @@ class ArtifactControllerTest {
         );
         int artifactId = 1;
 
-        when(artifactService.updateArtifact(artifactId,createArtifactDto)).thenThrow(new ArtifactNotFoundException(artifactId));
+        when(artifactService.updateArtifact(artifactId,createArtifactDto)).thenThrow(new ObjectNotFoundException("artifact",artifactId));
         String serializedPayLoad = objectMapper.writeValueAsString(createArtifactDto);
 
         //when then
-        mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/artifacts/{artifactId}",artifactId)
+        mockMvc.perform(MockMvcRequestBuilders.put(baseUrl + "/artifacts/{artifactId}",artifactId)
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(serializedPayLoad))
@@ -239,7 +244,7 @@ class ArtifactControllerTest {
     void deleteArtifactSuccess () throws Exception {
         int artifactId = 1;
         doNothing().when(artifactService).deleteArtifact(1);
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/artifacts/{artifactId}",1)
+        mockMvc.perform(MockMvcRequestBuilders.delete(baseUrl + "/artifacts/{artifactId}",1)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(true))
@@ -251,8 +256,8 @@ class ArtifactControllerTest {
     @Test
     void deleteArtifactFail () throws Exception {
         int artifactId = 1;
-        doThrow(new ArtifactNotFoundException(artifactId)).when(artifactService).deleteArtifact(artifactId);
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/v1/artifacts/{artifactId}",1)
+        doThrow(new ObjectNotFoundException("artifact",artifactId)).when(artifactService).deleteArtifact(artifactId);
+        mockMvc.perform(MockMvcRequestBuilders.delete(baseUrl + "/artifacts/{artifactId}",1)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(false))
