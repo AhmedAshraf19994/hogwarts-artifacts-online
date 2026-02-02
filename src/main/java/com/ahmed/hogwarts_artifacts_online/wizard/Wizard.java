@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,12 +26,10 @@ public class Wizard {
     private String name;
 
     @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "wizard")
+    @Builder.Default
     private List<Artifact> artifacts = new  ArrayList<>();
 
     public void addArtifact(Artifact artifact) {
-        if(this.artifacts == null) {
-            this.artifacts = new ArrayList<>();
-        }
         artifact.setWizard(this);
         this.artifacts.add(artifact);
     }
@@ -42,5 +41,10 @@ public class Wizard {
     public void removeAllArtifacts() {
         this.artifacts.stream().forEach(artifact -> artifact.setWizard(null));
         this.artifacts = new ArrayList<>();
+    }
+
+    public void removeArtifact(Artifact artifact) {
+        artifact.setWizard(null);
+        artifacts.remove(artifact);
     }
 }

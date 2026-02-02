@@ -1,5 +1,7 @@
 package com.ahmed.hogwarts_artifacts_online.wizard;
 
+import com.ahmed.hogwarts_artifacts_online.artifact.Artifact;
+import com.ahmed.hogwarts_artifacts_online.artifact.ArtifactRepository;
 import com.ahmed.hogwarts_artifacts_online.system.exceptions.ObjectNotFoundException;
 import com.ahmed.hogwarts_artifacts_online.wizard.dto.CreateWizardDto;
 import com.ahmed.hogwarts_artifacts_online.wizard.dto.WizardResponseDto;
@@ -16,6 +18,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -23,6 +26,8 @@ class WizardServiceTest {
 
     @Mock
     WizardRepository wizardRepository;
+    @Mock
+    ArtifactRepository artifactRepository;
     @Mock
     Wizard wizard;
     @Mock
@@ -169,6 +174,51 @@ class WizardServiceTest {
         //then
         assertEquals("could not find wizard with id 1", exception.getMessage());
         verify(wizardRepository, times(1)).findById(wizardId);
+    }
+
+    @Test
+    void assignArtifactToWizardSuccess () {
+        //given
+        Wizard wizardA = Wizard.builder().id(1).name("Harry Potter").build();
+        Wizard wizardB = Wizard.builder().id(2).name("Hermione Granger").build();
+        Artifact artifact = Artifact.builder().id(1).name("Resurrection Stone")
+                .description("the Resurrection Stone had the power to bring back lost loved ones.")
+                .imageUrl("imageUrl").build();
+        wizardA.addArtifact(artifact);
+        when(wizardRepository.findById(Mockito.any(Integer.class))).thenReturn(Optional.of(wizardB));
+        when(artifactRepository.findById(Mockito.any(Integer.class))).thenReturn(Optional.of(artifact));
+
+        //when
+        wizardService.assignArtifact(2,1);
+        //then
+        assertEquals(2, artifact.getWizard().getId());
+        assertTrue(wizardB.getArtifacts().contains(artifact));
+        assertEquals(1, wizardB.getNumberOfArtifacts());
+        assertEquals(0,wizardA.getNumberOfArtifacts());
+
+    }
+
+    @Test
+    void assignArtifactFailWithNoWizardFound () {
+        //given
+        when(wizardRepository.findById(Mockito.any(Integer.class))).thenReturn(Optional.empty());
+        //when
+        Exception exception = assertThrows(ObjectNotFoundException.class, () -> wizardService.assignArtifact(2,1));
+        //then
+        assertEquals("could not find wizard with id 2", exception.getMessage());
+    }
+
+    @Test
+    void assignArtifactFailWithNoArtifactFound () {
+        //given
+        Wizard wizard  = Wizard.builder().id(1).name("Harry Potter").build();
+
+        when(wizardRepository.findById(Mockito.any(Integer.class))).thenReturn(Optional.of(wizard));
+        when(artifactRepository.findById(Mockito.any(Integer.class))).thenReturn(Optional.empty());
+        //when
+        Exception exception = assertThrows(ObjectNotFoundException.class, () -> wizardService.assignArtifact(2,1));
+        //then
+        assertEquals("could not find artifact with id 1", exception.getMessage());
     }
 
 

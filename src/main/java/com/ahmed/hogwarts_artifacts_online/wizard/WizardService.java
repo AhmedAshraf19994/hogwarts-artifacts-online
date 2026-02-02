@@ -1,5 +1,7 @@
 package com.ahmed.hogwarts_artifacts_online.wizard;
 
+import com.ahmed.hogwarts_artifacts_online.artifact.Artifact;
+import com.ahmed.hogwarts_artifacts_online.artifact.ArtifactRepository;
 import com.ahmed.hogwarts_artifacts_online.system.exceptions.ObjectNotFoundException;
 import com.ahmed.hogwarts_artifacts_online.wizard.dto.CreateWizardDto;
 import com.ahmed.hogwarts_artifacts_online.wizard.dto.WizardResponseDto;
@@ -17,6 +19,7 @@ public class WizardService {
 
     private final WizardRepository wizardRepository;
     private final WizardMapper wizardMapper;
+    private final ArtifactRepository artifactRepository;
 
     public WizardResponseDto  findWizardById (int wizardId) {
         Wizard wizard = wizardRepository.findById(wizardId)
@@ -49,8 +52,28 @@ public class WizardService {
                 .orElseThrow(() -> new ObjectNotFoundException("wizard", wizardId));
         wizard.removeAllArtifacts();
         wizardRepository.deleteById(wizardId);
+    }
+
+    public void assignArtifact(int wizardId, int artifactId) {
+        // find the wizard
+        Wizard wizard = wizardRepository.findById(wizardId)
+                .orElseThrow( () -> new ObjectNotFoundException("wizard", wizardId));
+        //find the artifact
+        Artifact artifact = artifactRepository.findById(artifactId)
+                .orElseThrow(() -> new ObjectNotFoundException("artifact", artifactId));
+        // assign the artifact to new wizard
+        // check if the artifact already owned by another wizard
+        if (artifact.getWizard() != null) {
+            artifact.getWizard().removeArtifact(artifact);
+            wizard.addArtifact(artifact);
+        } else {
+            wizard.addArtifact(artifact);
+
+        }
+
 
     }
+
 
 
 
