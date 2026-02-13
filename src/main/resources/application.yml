@@ -10,6 +10,5 @@ server:
 api:
   endpoint:
     base-url: "/api/v1"
-lombok:
-  copyableAnnotations: += org.springframework.beans.factory.annotation.Qualifier
+
 
