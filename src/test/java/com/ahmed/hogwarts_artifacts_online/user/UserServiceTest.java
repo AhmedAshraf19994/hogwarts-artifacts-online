@@ -11,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,9 @@ class UserServiceTest {
     UserRepository userRepository;
     @Mock
     UserMapper userMapper;
+
+    @Mock
+    PasswordEncoder passwordEncoder;
 
     @InjectMocks
     UserService userService;
@@ -90,6 +94,7 @@ class UserServiceTest {
         UserResponseDto userResponseDto= new UserResponseDto(1, "Harry Potter", Role.USER);
         CreateUserDto createUserDto = new CreateUserDto("Harry Potter", "12345", Role.USER);
         when(userMapper.toUser(Mockito.any(CreateUserDto.class))).thenReturn(user);
+        when(passwordEncoder.encode(Mockito.any(String.class))).thenReturn("Encoded Password");
         when(userRepository.save(Mockito.any(User.class))).thenReturn(user);
         when(userMapper.toUserResponseDto(Mockito.any(User.class))).thenReturn(userResponseDto);
         //when

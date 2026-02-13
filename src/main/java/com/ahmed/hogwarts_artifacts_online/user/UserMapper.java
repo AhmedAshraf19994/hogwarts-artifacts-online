@@ -18,9 +18,9 @@ public class UserMapper {
         return User
                 .builder()
                 .userName(createUserDto.userName())
-                //password to be encoded
                 .password(createUserDto.password())
                 .role(createUserDto.role())
+                .isEnabled(true)
                 .build();
     }
 }

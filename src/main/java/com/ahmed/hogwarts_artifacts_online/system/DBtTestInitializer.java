@@ -5,6 +5,8 @@ import com.ahmed.hogwarts_artifacts_online.artifact.ArtifactRepository;
 import com.ahmed.hogwarts_artifacts_online.user.Role;
 import com.ahmed.hogwarts_artifacts_online.user.User;
 import com.ahmed.hogwarts_artifacts_online.user.UserRepository;
+import com.ahmed.hogwarts_artifacts_online.user.UserService;
+import com.ahmed.hogwarts_artifacts_online.user.dto.CreateUserDto;
 import com.ahmed.hogwarts_artifacts_online.wizard.Wizard;
 import com.ahmed.hogwarts_artifacts_online.wizard.WizardRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +19,7 @@ public class DBtTestInitializer implements CommandLineRunner {
 
     private final WizardRepository wizardRepository;
     private final ArtifactRepository artifactRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @Override
     public void run(String... args) throws Exception {
@@ -45,9 +47,9 @@ public class DBtTestInitializer implements CommandLineRunner {
                 .description("sparkling hourglass on a long gold chain, often featuring inner rings that rotate.")
                 .imageUrl("imageUrl").build();
 
-        User userA = User.builder().userName("Harry Potter").password("12345").role(Role.USER).build();
-        User userB = User.builder().userName("Albus Dumbledore").password("12345").role(Role.ADMIN).build();
-        User userC = User.builder().userName("Hermione Granger").password("12345").role(Role.USER).build();
+        CreateUserDto userA = new CreateUserDto("Ahmed","12345",Role.ADMIN);
+        CreateUserDto userB = new CreateUserDto("John","56789",Role.USER);
+        CreateUserDto userC = new CreateUserDto("Mike","faaffssf",Role.USER);
 
         wizardOne.addArtifact(artifactOne);
         wizardOne.addArtifact(artifactTwo);
@@ -63,9 +65,9 @@ public class DBtTestInitializer implements CommandLineRunner {
 
         artifactRepository.save(artifactFive);
 
-        userRepository.save(userA);
-        userRepository.save(userB);
-        userRepository.save(userC);
+        userService.saveUser(userA);
+        userService.saveUser(userB);
+        userService.saveUser(userC);
 
     }
 }

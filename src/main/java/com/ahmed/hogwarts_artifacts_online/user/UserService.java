@@ -7,6 +7,7 @@ import com.ahmed.hogwarts_artifacts_online.user.dto.UpdateUserDto;
 import com.ahmed.hogwarts_artifacts_online.user.dto.UserResponseDto;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,8 +17,10 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 public class UserService {
+
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     public UserResponseDto findUserById(int userId) {
         User user = userRepository.findById(userId)
@@ -30,8 +33,9 @@ public class UserService {
     }
 
     public UserResponseDto saveUser (CreateUserDto createUserDto) {
-        //password needs to be encoded
         User user = userMapper.toUser(createUserDto);
+        //password needs to be encoded
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         User savedUser = userRepository.save(user);
         return userMapper.toUserResponseDto(savedUser);
     }
