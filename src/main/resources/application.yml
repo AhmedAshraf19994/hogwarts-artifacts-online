@@ -1,7 +1,15 @@
+spring :
+  datasource:
+    url: "jdbc:h2:mem:hogwarts"
+    username: sa
+    password:
+
 server:
   port: 9090
 
 api:
   endpoint:
     base-url: "/api/v1"
+lombok:
+  copyableAnnotations: += org.springframework.beans.factory.annotation.Qualifier
 
