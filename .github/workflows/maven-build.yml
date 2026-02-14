@@ -1,0 +1,28 @@
+
+
+name: continuous integration with maven
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout the repository
+        uses: actions/checkout@v4
+      - name: setup java 25
+        uses: actions/setup-java@v4
+        with:
+          version: "25"
+          distribution: "temurin"
+          cache: maven
+      - name: build and test with maven
+        run: mvn --batch-mode package
+
+
+
+
