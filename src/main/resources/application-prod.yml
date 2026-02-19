@@ -1,0 +1,20 @@
+spring :
+  cloud:
+    azure:
+      keyvault:
+        secret:
+          property-sources[0]:
+             endpoint: ${AZURE_KEY_VAULT_ENDPOINT} # environment variable
+
+  datasource:
+    url: ${datasource-url} # secret from azure keyvault
+    username: ${datasource-username} # secret from azure keyvault
+    password: ${datasource-password} # secret from azure keyvault
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+
+
+

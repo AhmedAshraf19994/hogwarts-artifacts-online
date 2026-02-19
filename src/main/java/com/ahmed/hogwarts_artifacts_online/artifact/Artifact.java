@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @Entity
+@Table(name="artifacts")
 public class Artifact {
     @Id
     @GeneratedValue
@@ -21,9 +22,10 @@ public class Artifact {
 
     private String description;
 
+    @Column(name="image_url")
     private String imageUrl;
 
     @ManyToOne
-    @JoinColumn(name = "wizard-id")
+    @JoinColumn(name = "wizard_id")
     private Wizard wizard;
 }

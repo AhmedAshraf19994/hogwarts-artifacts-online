@@ -16,6 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
+@Table(name="wizards")
 
 public class Wizard {
 
