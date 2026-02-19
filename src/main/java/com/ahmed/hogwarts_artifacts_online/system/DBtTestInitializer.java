@@ -11,10 +11,12 @@ import com.ahmed.hogwarts_artifacts_online.wizard.Wizard;
 import com.ahmed.hogwarts_artifacts_online.wizard.WizardRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
 @Component
+@Profile("dev")
 public class DBtTestInitializer implements CommandLineRunner {
 
     private final WizardRepository wizardRepository;

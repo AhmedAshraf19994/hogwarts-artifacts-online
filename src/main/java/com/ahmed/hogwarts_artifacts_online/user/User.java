@@ -21,6 +21,7 @@ public class User {
     private String password;
     @Enumerated(EnumType.STRING)
     private Role role;
+    @Column(name="is_enabled")
     private boolean isEnabled;
 
 

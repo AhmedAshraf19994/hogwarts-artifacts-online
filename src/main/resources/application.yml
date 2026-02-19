@@ -1,9 +1,6 @@
-spring :
-  datasource:
-    url: "jdbc:h2:mem:hogwarts"
-    username: sa
-    password:
-
+spring:
+  profiles:
+    active: dev # active profile by default is dev. in production,it will be replaced by prod by azure environment variable
 server:
   port: 80
 
