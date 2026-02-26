@@ -8,6 +8,8 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
+import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -54,6 +56,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain (HttpSecurity http) {
         return http
                 .authorizeHttpRequests(auth -> auth
+
                         .requestMatchers(HttpMethod.GET,baseUrl + "/artifacts/**").permitAll()
                         .requestMatchers(baseUrl + "/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, baseUrl + "/users/**").hasAuthority("ROLE_ADMIN")
@@ -61,6 +64,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, baseUrl + "/users/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.DELETE, baseUrl + "/users/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers(EndpointRequest.to("health", "info")).permitAll()
+                        .requestMatchers(EndpointRequest.toAnyEndpoint().excluding("health", "info")).hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 ->
