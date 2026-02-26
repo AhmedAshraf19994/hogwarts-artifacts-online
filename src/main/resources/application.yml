@@ -9,3 +9,26 @@ api:
     base-url: "/api/v1"
 
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,env
+  endpoint:
+    health:
+      show-details: always
+  info:
+    env:
+      enabled: true
+    git:
+      enabled: true
+      mode: full
+
+info:
+  application:
+    name: hogwarts-artifacts-online
+    description: A web application that manages the artifacts and wizards for hogwarts school.
+    version: @project.version@
+    author: Ahmed Ashraf
+    links:
+      github: https://github.com/AhmedAshraf19994/hogwarts-artifacts-online
