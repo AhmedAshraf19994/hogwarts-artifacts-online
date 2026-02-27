@@ -64,8 +64,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, baseUrl + "/users/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.DELETE, baseUrl + "/users/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/h2-console/**").permitAll()
-                        .requestMatchers(EndpointRequest.to("health", "info")).permitAll()
-                        .requestMatchers(EndpointRequest.toAnyEndpoint().excluding("health", "info")).hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(EndpointRequest.to("health", "info","prometheus")).permitAll()
+                        .requestMatchers(EndpointRequest.toAnyEndpoint().excluding("health", "info", "prometheus")).hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 ->
