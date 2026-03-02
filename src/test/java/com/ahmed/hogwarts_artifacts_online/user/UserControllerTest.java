@@ -44,13 +44,9 @@ class UserControllerTest {
 
     @MockitoBean
     UserService userService;
-    @BeforeEach
-    void setUp() {
-    }
 
-    @AfterEach
-    void tearDown() {
-    }
+
+
 
     @Test
     void findUserSuccess() throws Exception {

@@ -41,9 +41,7 @@ class UserServiceTest {
         MockitoAnnotations.openMocks(this);
     }
 
-    @AfterEach
-    void tearDown() {
-    }
+
 
     @Test
     void findUserByIdSuccess() {

@@ -1,6 +1,6 @@
 spring:
   application:
-    name: "hogwarts-artifacts-school"
+    name: hogwarts-artifacts-online
   profiles:
     active: dev # active profile by default is dev. in production,it will be replaced by prod by azure environment variable
 server:
@@ -12,13 +12,8 @@ api:
 
 management:
   tracing:
-    enabled: true
     sampling:
-      probability: 1.0
-    exporter:
-      zipkin:
-        enabled: true
-        endpoint: http://localhost:9411/api/v2/spans
+      probability: 1 # needs to reduced in prod
   endpoints:
     web:
       exposure:
@@ -41,7 +36,3 @@ info:
     author: Ahmed Ashraf
     links:
       github: https://github.com/AhmedAshraf19994/hogwarts-artifacts-online
-logging:
-  level:
-    io.micrometer.tracing: DEBUG
-    zipkin2: DEBUG
