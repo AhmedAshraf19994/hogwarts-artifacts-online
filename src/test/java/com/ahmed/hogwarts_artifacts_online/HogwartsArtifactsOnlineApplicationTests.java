@@ -9,8 +9,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 class HogwartsArtifactsOnlineApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+
 
 }

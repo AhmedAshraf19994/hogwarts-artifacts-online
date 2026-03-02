@@ -50,9 +50,7 @@ class ArtifactServiceTest {
         artifacts.add(artifactOne);
     }
 
-    @AfterEach
-    void tearDown() {
-    }
+
 
     @Test
     void findArtifactByIdSuccess() {

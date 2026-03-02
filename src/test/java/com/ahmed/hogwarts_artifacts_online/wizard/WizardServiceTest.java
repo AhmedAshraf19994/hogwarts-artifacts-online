@@ -53,9 +53,7 @@ class WizardServiceTest {
         wizards.add(wizardThree);
     }
 
-    @AfterEach
-    void tearDown() {
-    }
+
 
     @Test
     void findWizardById() {

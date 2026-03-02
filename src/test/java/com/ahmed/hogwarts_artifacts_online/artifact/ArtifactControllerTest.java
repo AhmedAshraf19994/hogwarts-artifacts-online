@@ -68,9 +68,7 @@ class ArtifactControllerTest {
                 .collect(Collectors.toList());
     }
 
-    @AfterEach
-    void tearDown() {
-    }
+
 
     @Test
     void findArtifactByIdSuccess () throws Exception {
