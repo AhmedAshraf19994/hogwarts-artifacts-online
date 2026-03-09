@@ -2,10 +2,13 @@ package com.ahmed.hogwarts_artifacts_online.artifact;
 
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.ArtifactResponseDto;
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.CreateArtifactDto;
+import com.ahmed.hogwarts_artifacts_online.artifact.dto.PageResponseDto;
 import com.ahmed.hogwarts_artifacts_online.system.Response;
 import com.ahmed.hogwarts_artifacts_online.wizard.Wizard;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,16 +34,18 @@ public class ArtifactController {
                 .build();
     }
 
+
+
     @GetMapping("")
-    public Response<List<ArtifactResponseDto>> test () {
-        List<ArtifactResponseDto> artifacts = artifactService.findAllArtifacts();
+    public Response<PageResponseDto<ArtifactResponseDto>> findAllArtifacts (Pageable pageable) {
+        PageResponseDto<ArtifactResponseDto> pageOfArtifactsResponseDto = artifactService.findAllArtifacts(pageable);
 
         return Response
-                .<List<ArtifactResponseDto>>builder()
+                .<PageResponseDto<ArtifactResponseDto>>builder()
                 .flag(true)
                 .code(HttpStatus.OK.value())
                 .message("Find All Artifacts Success")
-                .data(artifacts)
+                .data(pageOfArtifactsResponseDto)
                 .build();
     }
 

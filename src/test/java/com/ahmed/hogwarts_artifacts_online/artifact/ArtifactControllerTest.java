@@ -2,6 +2,7 @@ package com.ahmed.hogwarts_artifacts_online.artifact;
 
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.ArtifactResponseDto;
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.CreateArtifactDto;
+import com.ahmed.hogwarts_artifacts_online.artifact.dto.PageResponseDto;
 import com.ahmed.hogwarts_artifacts_online.system.exceptions.ObjectNotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +11,10 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -116,7 +121,18 @@ class ArtifactControllerTest {
     @Test
     void findAllArtifactsSuccess () throws Exception {
         //given
-        when(artifactService.findAllArtifacts()).thenReturn(returnedArtifacts)
+        Pageable pageable = PageRequest.of(0,2);
+        PageResponseDto<ArtifactResponseDto> pageOfArtifactsResponseDto = new PageResponseDto<ArtifactResponseDto>(
+                returnedArtifacts,
+                1,
+                3,
+                6L,
+                2,
+                true,
+                false
+        );
+
+        when(artifactService.findAllArtifacts(Mockito.any(Pageable.class))).thenReturn(pageOfArtifactsResponseDto)
         ;
         //when then
         mockMvc.perform(MockMvcRequestBuilders.get(baseUrl + "/artifacts").accept(MediaType.APPLICATION_JSON))
@@ -124,7 +140,7 @@ class ArtifactControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(true))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Find All Artifacts Success"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.OK.value()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data").isArray());
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.content").isArray());
     }
 
     @Test

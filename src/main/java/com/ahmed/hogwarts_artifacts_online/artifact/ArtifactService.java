@@ -2,9 +2,13 @@ package com.ahmed.hogwarts_artifacts_online.artifact;
 
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.ArtifactResponseDto;
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.CreateArtifactDto;
+import com.ahmed.hogwarts_artifacts_online.artifact.dto.PageResponseDto;
 import com.ahmed.hogwarts_artifacts_online.system.exceptions.ObjectNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,11 +28,18 @@ public class ArtifactService {
         return artifactMapper.toArtifactResponseDto(artifact);
     }
 
-    public List<ArtifactResponseDto> findAllArtifacts() {
-        List<Artifact> artifacts = artifactRepository.findAll();
-        return artifacts .stream()
-                .map(artifactMapper::toArtifactResponseDto)
-                .collect(Collectors.toList());
+    public PageResponseDto<ArtifactResponseDto> findAllArtifacts(Pageable pageable) {
+
+        //to prevent unlimited page size
+        if (pageable.getPageSize() > 50) {
+            pageable = PageRequest.of(
+                    pageable.getPageNumber(),
+                    50,
+                    pageable.getSort()
+            );
+        }
+        Page<Artifact> pageOfArtifacts = artifactRepository.findAll(pageable);
+        return artifactMapper.toPageResponseDto(pageOfArtifacts);
 
     }
 
