@@ -4,7 +4,6 @@ package com.ahmed.hogwarts_artifacts_online.artifact;
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.CreateArtifactDto;
 import com.ahmed.hogwarts_artifacts_online.auth.dto.AuthRequestDto;
 import jakarta.transaction.Transactional;
-import lombok.val;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,6 +19,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import tools.jackson.databind.ObjectMapper;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -66,8 +67,25 @@ public class ArtifactControllerIntegrationTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(true))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.OK.value()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Find All Artifacts Success"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data").isArray())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data",hasSize(6)));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.content").isArray())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.content",hasSize(6)));
+    }
+    @Test
+    void findAllArtifactsSuccessWithPagingAndSorting () throws Exception {
+        MultiValueMap<String, String> requestParams = new LinkedMultiValueMap();
+        requestParams.add("page","0");
+        requestParams.add("size","2");
+        requestParams.add("sort","name");
+
+        mockMvc.perform(MockMvcRequestBuilders.get( baseUrl + "/artifacts")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .params(requestParams))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(true))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.OK.value()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Find All Artifacts Success"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.content").isArray())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.content",hasSize(2)));
     }
 
     @Test
@@ -121,8 +139,8 @@ public class ArtifactControllerIntegrationTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(true))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.OK.value()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Find All Artifacts Success"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data").isArray())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data",hasSize(7)));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.content").isArray())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.content",hasSize(7)));
     }
 
     @Test
@@ -214,8 +232,8 @@ public class ArtifactControllerIntegrationTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(true))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.OK.value()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Find All Artifacts Success"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data").isArray())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data",hasSize(5)));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.content").isArray())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.content",hasSize(5)));
     }
     @Test
     void deleteArtifactByIdFailWithNotFoundArtifact () throws Exception {
@@ -234,9 +252,7 @@ public class ArtifactControllerIntegrationTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(true))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.OK.value()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Find All Artifacts Success"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data").isArray())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data",hasSize(6)));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.content").isArray())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.content",hasSize(6)));
     }
-
-
 }

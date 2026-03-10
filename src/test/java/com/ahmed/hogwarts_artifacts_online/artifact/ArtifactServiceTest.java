@@ -2,6 +2,7 @@ package com.ahmed.hogwarts_artifacts_online.artifact;
 
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.ArtifactResponseDto;
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.CreateArtifactDto;
+import com.ahmed.hogwarts_artifacts_online.artifact.dto.PageResponseDto;
 import com.ahmed.hogwarts_artifacts_online.system.exceptions.ObjectNotFoundException;
 import com.ahmed.hogwarts_artifacts_online.wizard.Wizard;
 import org.junit.jupiter.api.AfterEach;
@@ -11,11 +12,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -107,11 +113,28 @@ class ArtifactServiceTest {
     @Test
     void findAllArtifactsSuccess () {
         //given
-        when(artifactRepository.findAll()).thenReturn(artifacts);
+        List<ArtifactResponseDto> artifactResponseDtos = artifacts.stream().map(artifactMapper::toArtifactResponseDto)
+                .collect(Collectors.toList());
+
+
+        Pageable pageable = PageRequest.of(0,2);
+        Page<Artifact> pageOfArtifacts = new PageImpl<>(artifacts,pageable,artifacts.size());
+        PageResponseDto<ArtifactResponseDto> pageOfArtifactsResponseDto = new PageResponseDto<ArtifactResponseDto>(
+                artifactResponseDtos,
+                1,
+                3,
+                6L,
+                2,
+                true,
+                false
+        );
+        when(artifactRepository.findAll(Mockito.any(Pageable.class))).thenReturn(pageOfArtifacts);
+        when(artifactMapper.toPageResponseDto(Mockito.any(Page.class))).thenReturn(pageOfArtifactsResponseDto);
+
         //when
-        List<ArtifactResponseDto> returnedArtifacts = artifactService.findAllArtifacts();
+        PageResponseDto<ArtifactResponseDto> result = artifactService.findAllArtifacts(pageable);
         //then
-        assertEquals(returnedArtifacts.size(),artifacts.size());
+        assertEquals(result.content().size(),artifacts.size());
 
     }
 
