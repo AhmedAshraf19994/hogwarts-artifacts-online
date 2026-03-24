@@ -2,6 +2,7 @@ package com.ahmed.hogwarts_artifacts_online.artifact;
 
 
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.CreateArtifactDto;
+import com.ahmed.hogwarts_artifacts_online.artifact.dto.CriteriaRequestDto;
 import com.ahmed.hogwarts_artifacts_online.auth.dto.AuthRequestDto;
 import jakarta.transaction.Transactional;
 import org.json.JSONObject;
@@ -235,6 +236,7 @@ public class ArtifactControllerIntegrationTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.content").isArray())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.content",hasSize(5)));
     }
+
     @Test
     void deleteArtifactByIdFailWithNotFoundArtifact () throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.delete(baseUrl + "/artifacts/{artifactId}", 9)
@@ -254,5 +256,40 @@ public class ArtifactControllerIntegrationTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Find All Artifacts Success"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.content").isArray())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.content",hasSize(6)));
+    }
+
+    @Test
+    void findBySearchCriteriaName () throws Exception {
+        //given
+        CriteriaRequestDto criteriaRequestDto = new CriteriaRequestDto(null, "time", null, null);
+        String serializedPayload = objectMapper.writeValueAsString(criteriaRequestDto);
+
+        //when then
+        mockMvc.perform(MockMvcRequestBuilders.post(baseUrl + "/artifacts/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(serializedPayload)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(true))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.OK.value()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Search Success"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.content", hasSize(1)));
+    }
+    @Test
+    void findBySearchCriteriaNameAndDescription () throws Exception {
+        //given
+        CriteriaRequestDto criteriaRequestDto = new CriteriaRequestDto(null, "ti", "th", null);
+        String serializedPayload = objectMapper.writeValueAsString(criteriaRequestDto);
+
+        //when then
+        mockMvc.perform(MockMvcRequestBuilders.post(baseUrl + "/artifacts/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(serializedPayload)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(true))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.OK.value()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Search Success"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.content", hasSize(2)));
     }
 }

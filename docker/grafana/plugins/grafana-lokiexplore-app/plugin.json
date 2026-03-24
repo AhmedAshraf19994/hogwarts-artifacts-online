@@ -37,8 +37,8 @@
                 "path": "img/table.png"
             }
         ],
-        "version": "1.0.37",
-        "updated": "2026-02-23",
+        "version": "2.0.0",
+        "updated": "2026-03-19",
         "links": [
             {
                 "name": "Github",
@@ -62,7 +62,7 @@
     ],
     "roles": [],
     "dependencies": {
-        "grafanaDependency": ">=11.6.0",
+        "grafanaDependency": ">=11.6.11 <12 || >=12.0.10 <12.1 || >=12.1.7 <12.2 || >=12.2.5",
         "plugins": [],
         "extensions": {
             "exposedComponents": [

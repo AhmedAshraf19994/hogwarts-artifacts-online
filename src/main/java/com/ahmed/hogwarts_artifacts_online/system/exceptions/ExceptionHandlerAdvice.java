@@ -126,7 +126,7 @@ public class ExceptionHandlerAdvice {
                 .flag(false)
                 .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .message("internal server error occur")
-                .data(exception)
+                .data(null)
                 .build();
     }
 

@@ -2,12 +2,11 @@ package com.ahmed.hogwarts_artifacts_online.artifact;
 
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.ArtifactResponseDto;
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.CreateArtifactDto;
+import com.ahmed.hogwarts_artifacts_online.artifact.dto.CriteriaRequestDto;
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.PageResponseDto;
 import com.ahmed.hogwarts_artifacts_online.system.Response;
-import com.ahmed.hogwarts_artifacts_online.wizard.Wizard;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +19,7 @@ import java.util.List;
 public class ArtifactController {
 
     private final ArtifactService artifactService;
+
     @GetMapping("/{artifactId}")
     public Response<ArtifactResponseDto> findArtifactById (
             @PathVariable ("artifactId") int artifactId
@@ -33,8 +33,6 @@ public class ArtifactController {
                 .data(artifactResponseDto)
                 .build();
     }
-
-
 
     @GetMapping("")
     public Response<PageResponseDto<ArtifactResponseDto>> findAllArtifacts (Pageable pageable) {
@@ -90,5 +88,22 @@ public class ArtifactController {
                 .code(HttpStatus.OK.value())
                 .data(null)
                 .build();
+    }
+
+    @PostMapping("/search")
+    public Response<PageResponseDto<ArtifactResponseDto>> findBySearchCriteria (
+            @RequestBody CriteriaRequestDto criteriaRequestDto,
+            Pageable pageable
+    ) {
+        PageResponseDto<ArtifactResponseDto> pageOfArtifactResponseDto= artifactService.findByCriteria(criteriaRequestDto, pageable);
+
+        return Response
+                .<PageResponseDto<ArtifactResponseDto>>builder()
+                .flag(true)
+                .code(HttpStatus.OK.value())
+                .message(pageOfArtifactResponseDto.content().isEmpty() ? "No Found Artifacts" : "Search Success")
+                .data(pageOfArtifactResponseDto)
+                .build();
+
     }
 }
