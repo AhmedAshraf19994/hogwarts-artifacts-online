@@ -3,6 +3,13 @@ spring :
     url: "jdbc:h2:mem:hogwarts"
     username: sa
     password:
+#  cloud:
+#    azure:
+#      storage:
+#        blob:
+#          account-name: ${AZURE_STORAGE_ACCOUNT_NAME} #envionment variable
+#          account-key: ${AZURE_STORAGE_ACCOUNT_KEY}   #envionment variable
+
 
 
 

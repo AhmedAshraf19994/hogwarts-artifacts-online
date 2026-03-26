@@ -56,17 +56,6 @@ public class ExceptionHandlerAdvice {
 
     }
 
-    @ExceptionHandler({UsernameNotFoundException.class, BadCredentialsException.class})
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    Response<?> handleAuthExceptions (Exception exception) {
-        return Response
-                .builder()
-                .flag(false)
-                .code(HttpStatus.UNAUTHORIZED.value())
-                .message("username or password is wrong")
-                .build();
-    }
-
     @ExceptionHandler(InsufficientAuthenticationException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     Response<?> handleInsufficientAuthException (InsufficientAuthenticationException insufficientAuthenticationException) {
@@ -76,6 +65,18 @@ public class ExceptionHandlerAdvice {
                 .code(HttpStatus.UNAUTHORIZED.value())
                 .message("you must log in")
                 .data(null)
+                .build();
+    }
+
+
+    @ExceptionHandler({UsernameNotFoundException.class, BadCredentialsException.class})
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    Response<?> handleAuthExceptions (Exception exception) {
+        return Response
+                .builder()
+                .flag(false)
+                .code(HttpStatus.UNAUTHORIZED.value())
+                .message("username or password is wrong")
                 .build();
     }
 
@@ -126,10 +127,20 @@ public class ExceptionHandlerAdvice {
                 .flag(false)
                 .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .message("internal server error occur")
-                .data(null)
+                .data(exception.getMessage())
                 .build();
     }
 
-
+    @ExceptionHandler(CustomBlobStorageException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    Response<?> handleCustomBlobStorageException (CustomBlobStorageException exception) {
+        return Response
+                .builder()
+                .flag(false)
+                .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .message(exception.getMessage())
+                .data(exception.getCause().getMessage())
+                .build();
+    }
 
 }
