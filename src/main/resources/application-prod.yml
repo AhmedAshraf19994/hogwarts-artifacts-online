@@ -5,6 +5,13 @@ spring :
         secret:
           property-sources[0]:
              endpoint: ${AZURE_KEY_VAULT_ENDPOINT} # environment variable
+#      cloud:
+#        azure:
+#          storage:
+#            blob:
+#              account-name: ${AZURE_STORAGE_ACCOUNT_NAME} #envionment variable
+#              account-key: ${AZURE_STORAGE_ACCOUNT_KEY}   #envionment variable
+
 
   datasource:
     url: ${datasource-url} # secret from azure keyvault

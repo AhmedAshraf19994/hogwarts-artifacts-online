@@ -109,6 +109,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-zipkin</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.azure.spring</groupId>
+            <artifactId>spring-cloud-azure-starter-storage-blob</artifactId>
+        </dependency>
 
 	</dependencies>
 
@@ -164,7 +168,7 @@
             <dependency>
                 <groupId>com.azure.spring</groupId>
                 <artifactId>spring-cloud-azure-dependencies</artifactId>
-                <version>7.0.0</version>
+                <version>7.1.0</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

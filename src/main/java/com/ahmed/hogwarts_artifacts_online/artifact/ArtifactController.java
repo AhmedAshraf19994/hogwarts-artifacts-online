@@ -4,13 +4,17 @@ import com.ahmed.hogwarts_artifacts_online.artifact.dto.ArtifactResponseDto;
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.CreateArtifactDto;
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.CriteriaRequestDto;
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.PageResponseDto;
+import com.ahmed.hogwarts_artifacts_online.client.imageStorage.ImageStorageClient;
 import com.ahmed.hogwarts_artifacts_online.system.Response;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 @RestController
@@ -19,6 +23,8 @@ import java.util.List;
 public class ArtifactController {
 
     private final ArtifactService artifactService;
+
+//    private final ImageStorageClient imageStorageClient;
 
     @GetMapping("/{artifactId}")
     public Response<ArtifactResponseDto> findArtifactById (
@@ -104,6 +110,24 @@ public class ArtifactController {
                 .message(pageOfArtifactResponseDto.content().isEmpty() ? "No Found Artifacts" : "Search Success")
                 .data(pageOfArtifactResponseDto)
                 .build();
-
     }
+
+//    @PostMapping("/images")
+//    public Response<String> uploadArtifactImage (
+//            @RequestParam String containerName,
+//            @RequestParam MultipartFile file
+//            ) throws IOException {
+//        try (InputStream inputStream = file.getInputStream()) {
+//            String imageUrl = imageStorageClient.uploadImage(containerName, file.getOriginalFilename(), inputStream, file.getSize());
+//            return Response
+//                    .<String>builder()
+//                    .flag(true)
+//                    .code(HttpStatus.OK.value())
+//                    .message("Upload Image Success")
+//                    .data(imageUrl)
+//                    .build();
+//        }
+
+//    }
+
 }
