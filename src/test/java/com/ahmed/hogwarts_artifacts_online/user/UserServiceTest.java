@@ -1,10 +1,11 @@
 package com.ahmed.hogwarts_artifacts_online.user;
 
+import com.ahmed.hogwarts_artifacts_online.auth.AuthService;
 import com.ahmed.hogwarts_artifacts_online.system.exceptions.ObjectNotFoundException;
 import com.ahmed.hogwarts_artifacts_online.user.dto.CreateUserDto;
 import com.ahmed.hogwarts_artifacts_online.user.dto.UpdateUserDto;
 import com.ahmed.hogwarts_artifacts_online.user.dto.UserResponseDto;
-import org.junit.jupiter.api.AfterEach;
+import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -22,13 +23,16 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ActiveProfiles(value = "dev")
-
 class UserServiceTest {
 
     @Mock
     UserRepository userRepository;
+
     @Mock
-    UserMapper userMapper;
+    AuthService authService;
+
+    @Mock
+     UserMapper userMapper ;
 
     @Mock
     PasswordEncoder passwordEncoder;
@@ -41,12 +45,10 @@ class UserServiceTest {
         MockitoAnnotations.openMocks(this);
     }
 
-
-
     @Test
     void findUserByIdSuccess() {
         //given
-        User user = User.builder().id(1).userName("Harry Potter").password("123456").build();
+        User user = User.builder().userName("Harry Potter").password("123456").build();
         UserResponseDto userResponseDto= new UserResponseDto(1, "Harry Potter",Role.USER);
         when(userRepository.findById(Mockito.any(Integer.class))).thenReturn(Optional.of(user));
         when(userMapper.toUserResponseDto(user)).thenReturn(userResponseDto);
@@ -107,28 +109,58 @@ class UserServiceTest {
     }
 
     @Test
-    void updateUserSuccess () {
+    void updateUserWithAdminRoleSuccess () {
         //given
-        UpdateUserDto updateUserDto = new UpdateUserDto("Albus Dumbledore",Role.USER);
+        UpdateUserDto updateUserDto = new UpdateUserDto("Albus Dumbledore",Role.ADMIN);
+
         User oldUser = User.builder().id(1).userName("Harry Potter").role(Role.USER).build();
-        UserResponseDto newUser = new UserResponseDto(1, "Albus Dumbledore",Role.USER);
+
+        User savedUser = User.builder().id(1).userName("Albus Dumbledore").role(Role.ADMIN).build();
+
+        UserResponseDto userResponseDto = new UserResponseDto(1, "Albus Dumbledore",Role.ADMIN);
 
         when(userRepository.findById(Mockito.any(Integer.class))).thenReturn(Optional.of(oldUser));
-        when(userRepository.save(Mockito.any(User.class))).thenReturn(oldUser);
-        when(userMapper.toUserResponseDto(Mockito.any(User.class))).thenReturn(newUser);
+        when(userRepository.save(Mockito.any(User.class))).thenReturn(savedUser);
+        when(userMapper.toUserResponseDto(Mockito.any(User.class))).thenReturn(userResponseDto);
+        when(authService.isAdmin()).thenReturn(true);
 
         //when
         UserResponseDto result = userService.updateUser(1,updateUserDto);
         //then
-        assertEquals(updateUserDto.userName(),result.userName());
+        assertEquals("Albus Dumbledore" ,oldUser.getUserName());
+        assertEquals(Role.ADMIN, oldUser.getRole());
+        assertEquals(result, userResponseDto);
     }
+
+    @Test
+    void updateUserWithUserRoleSuccess () {
+        //given
+        UpdateUserDto updateUserDto = new UpdateUserDto("Albus Dumbledore",Role.ADMIN);
+
+        User oldUser = User.builder().id(1).userName("Harry Potter").role(Role.USER).build();
+
+        User savedUser = User.builder().id(1).userName("Albus Dumbledore").role(Role.USER).build();
+
+        UserResponseDto userResponseDto = new UserResponseDto(1, "Albus Dumbledore",Role.USER);
+
+        when(userRepository.findById(Mockito.any(Integer.class))).thenReturn(Optional.of(oldUser));
+        when(userRepository.save(Mockito.any(User.class))).thenReturn(savedUser);
+        when(userMapper.toUserResponseDto(Mockito.any(User.class))).thenReturn(userResponseDto);
+        when(authService.isAdmin()).thenReturn(false);
+
+        //when
+        UserResponseDto result = userService.updateUser(1,updateUserDto);
+        //then
+        assertEquals("Albus Dumbledore" ,oldUser.getUserName());
+        assertEquals(Role.USER, oldUser.getRole());
+        assertEquals(result, userResponseDto);
+    }
+
     @Test
     void updateUserFailWithNoUserFound () {
         //given
         UpdateUserDto updateUserDto = new UpdateUserDto("Albus Dumbledore",Role.USER);
-
         when(userRepository.findById(Mockito.any(Integer.class))).thenReturn(Optional.empty());
-
         //when
         Exception exception = assertThrows(ObjectNotFoundException.class, () -> userService.updateUser(1, updateUserDto));
         //then

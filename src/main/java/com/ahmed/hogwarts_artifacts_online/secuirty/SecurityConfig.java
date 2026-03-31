@@ -16,6 +16,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -49,20 +50,22 @@ public class SecurityConfig {
     private String baseUrl;
 
     private final CustomBearerTokenAuthenticationEntryPoint customBearerTokenAuthenticationEntryPoint;
+
     private final CustomeAccessDeniedHandler customeAccessDeniedHandler;
 
+    private final UserRequestAuthorizationManager userRequestAuthorizationManager;
 
     @Bean
     public SecurityFilterChain securityFilterChain (HttpSecurity http) {
         return http
                 .authorizeHttpRequests(auth -> auth
-
                         .requestMatchers(HttpMethod.GET,baseUrl + "/artifacts/**").permitAll()
                         .requestMatchers(HttpMethod.POST, baseUrl + "/artifacts/search").permitAll()
                         .requestMatchers(baseUrl + "/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, baseUrl + "/users/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.GET, baseUrl + "/users/**").access(userRequestAuthorizationManager)
+                        .requestMatchers(HttpMethod.GET, baseUrl + "/users").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.POST, baseUrl + "/users").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.PUT, baseUrl + "/users/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, baseUrl + "/users/**").access(userRequestAuthorizationManager)
                         .requestMatchers(HttpMethod.DELETE, baseUrl + "/users/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers(EndpointRequest.to("health", "info","prometheus")).permitAll()

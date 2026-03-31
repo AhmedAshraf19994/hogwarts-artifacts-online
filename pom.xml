@@ -114,7 +114,7 @@
             <artifactId>spring-cloud-azure-starter-storage-blob</artifactId>
         </dependency>
 
-	</dependencies>
+    </dependencies>
 
 	<build>
 		<plugins>

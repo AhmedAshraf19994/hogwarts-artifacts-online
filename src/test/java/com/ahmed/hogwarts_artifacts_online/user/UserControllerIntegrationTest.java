@@ -1,13 +1,11 @@
 package com.ahmed.hogwarts_artifacts_online.user;
-
-
 import com.ahmed.hogwarts_artifacts_online.auth.dto.AuthRequestDto;
 import com.ahmed.hogwarts_artifacts_online.user.dto.CreateUserDto;
 import com.ahmed.hogwarts_artifacts_online.user.dto.UpdateUserDto;
 import jakarta.transaction.Transactional;
-import org.aspectj.lang.annotation.Before;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,8 +28,6 @@ import static org.hamcrest.Matchers.hasSize;
 @AutoConfigureMockMvc
 @Transactional // for reset database after every test
 @ActiveProfiles(value = "dev")
-
-
 public class UserControllerIntegrationTest {
 
     @Autowired
@@ -45,7 +41,7 @@ public class UserControllerIntegrationTest {
 
     String token;
 
-    //to sign in with user with no permissions .
+    //to sign in with a user role .
     private void logInWithUserRolePermission () throws Exception {
         AuthRequestDto authRequestDto = new AuthRequestDto("John", "56789");
         // get the raw mvc result and print for debug
@@ -64,6 +60,7 @@ public class UserControllerIntegrationTest {
 
     @BeforeEach
     void setUp () throws Exception {
+        //sign in with admin role
         AuthRequestDto authRequestDto = new AuthRequestDto("Ahmed", "12345");
         // get the raw mvc result and print for debug
         String serializedAuthRequestDto = objectMapper.writeValueAsString(authRequestDto);
@@ -115,7 +112,7 @@ public class UserControllerIntegrationTest {
     }
 
  @Test
-    void findUserByIdSuccess () throws Exception {
+    void findUserByIdWithRoleAdminAccessingAnyUserInfoSuccess () throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get(baseUrl + "/users/{userId}", 1)
                         .header("Authorization", token))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -125,9 +122,49 @@ public class UserControllerIntegrationTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.id").value(1))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.userName").value("Ahmed"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.role").value("ADMIN"));
+
+     mockMvc.perform(MockMvcRequestBuilders.get(baseUrl + "/users/{userId}", 2)
+                     .header("Authorization", token))
+             .andExpect(MockMvcResultMatchers.status().isOk())
+             .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(true))
+             .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.OK.value()))
+             .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Find User Success"))
+             .andExpect(MockMvcResultMatchers.jsonPath("$.data.id").value(2))
+             .andExpect(MockMvcResultMatchers.jsonPath("$.data.userName").value("John"))
+             .andExpect(MockMvcResultMatchers.jsonPath("$.data.role").value("USER"));
     }
 
-@Test
+    @Test
+    void findUserByIdWithRoleUserAccessingHisOwnInfoSuccess () throws Exception {
+        //sign in with use role permission
+        logInWithUserRolePermission();
+
+        mockMvc.perform(MockMvcRequestBuilders.get(baseUrl + "/users/{userId}", 2)
+                        .header("Authorization", token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(true))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.OK.value()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Find User Success"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.id").value(2))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.userName").value("John"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.role").value("USER"));
+    }
+
+    @Test
+    void findUserByIdWithRoleUserAccessingOthersInfoFailWithNoPermission () throws Exception {
+        //sign in with use role permission
+        logInWithUserRolePermission();
+
+        mockMvc.perform(MockMvcRequestBuilders.get(baseUrl + "/users/{userId}", 3)
+                        .header("Authorization", token))
+                .andExpect(MockMvcResultMatchers.status().isForbidden())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(false))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("No permission"));
+    }
+
+
+    @Test
     void findUserByIdFailWithNoFoundUser () throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get(baseUrl + "/users/{userId}", 4)
                         .header("Authorization", token))
@@ -152,8 +189,8 @@ public class UserControllerIntegrationTest {
 
     @Test
     void saveUserSuccess () throws Exception {
-
         CreateUserDto createUserDto = new CreateUserDto("test", "test", Role.USER);
+
         mockMvc.perform(MockMvcRequestBuilders.post(baseUrl + "/users")
                 .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", token)
@@ -180,6 +217,7 @@ public class UserControllerIntegrationTest {
     @Test
     void saveUserFailWithInvalidInput () throws Exception {
         CreateUserDto createUserDto = new CreateUserDto(null, null, null);
+
         mockMvc.perform(MockMvcRequestBuilders.post(baseUrl + "/users")
                 .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", token)
@@ -193,7 +231,9 @@ public class UserControllerIntegrationTest {
 
     @Test
     void saveUserFailWithNoPermission () throws Exception {
+        //sign in with user role
         logInWithUserRolePermission();
+
         CreateUserDto createUserDto = new CreateUserDto("test", "test", Role.USER);
         mockMvc.perform(MockMvcRequestBuilders.post(baseUrl + "/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -208,10 +248,11 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
-    void updateUserSuccess () throws Exception {
+    void updateUserWithAdminRoleUpdatingAnyUserInfoSuccess () throws Exception {
+        UpdateUserDto updateUserDto = new UpdateUserDto("new name", Role.ADMIN);
 
-            UpdateUserDto updateUserDto = new UpdateUserDto("test", Role.USER);
-        mockMvc.perform(MockMvcRequestBuilders.put(baseUrl + "/users/{userId}", 3)
+        // updating another user info
+        mockMvc.perform(MockMvcRequestBuilders.put(baseUrl + "/users/{userId}", 2)
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", token)
                         .content(objectMapper.writeValueAsString(updateUserDto))
@@ -220,15 +261,72 @@ public class UserControllerIntegrationTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(true))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.OK.value()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Update User Success"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.data.id").value(3))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.id").value(2))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.userName").value(updateUserDto.userName()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.role").value(updateUserDto.role().name()));
+
+        //updating own info
+        mockMvc.perform(MockMvcRequestBuilders.put(baseUrl + "/users/{userId}", 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", token)
+                        .content(objectMapper.writeValueAsString(updateUserDto))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(true))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.OK.value()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Update User Success"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.id").value(1))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.userName").value(updateUserDto.userName()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.role").value(updateUserDto.role().name()));
     }
 
+    @Test
+    @DisplayName(value = "check user is only allowed to update his name only")
+    void updateUserWithUserRoleUpdatingHisOwnInfoInfoSuccess () throws Exception {
+        //login with user role
+        logInWithUserRolePermission();
+
+        UpdateUserDto updateUserDto = new UpdateUserDto("new name", Role.ADMIN);
+
+        // updating another user info
+        mockMvc.perform(MockMvcRequestBuilders.put(baseUrl + "/users/{userId}", 2)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", token)
+                        .content(objectMapper.writeValueAsString(updateUserDto))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(true))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.OK.value()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Update User Success"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.id").value(2))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.userName").value(updateUserDto.userName()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.data.role").value(Role.USER.name()));
+    }
+
+    @Test
+    @DisplayName(value = "check user role fails to update other users info with no permission")
+    void updateUserWithUserRoleUpdatingOthersInfoInfoFailWithNoPermission () throws Exception {
+        //login with user role
+        logInWithUserRolePermission();
+
+        UpdateUserDto updateUserDto = new UpdateUserDto("new name", Role.ADMIN);
+
+        // updating another user info
+        mockMvc.perform(MockMvcRequestBuilders.put(baseUrl + "/users/{userId}", 3)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", token)
+                        .content(objectMapper.writeValueAsString(updateUserDto))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isForbidden())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(false))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("No permission"));
+    }
+
  @Test
     void updateUserFailWithInvalidInput () throws Exception {
-
     UpdateUserDto updateUserDto = new UpdateUserDto(null, Role.ADMIN);
+
         mockMvc.perform(MockMvcRequestBuilders.put(baseUrl + "/users/{userId}", 3)
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", token)
@@ -242,8 +340,8 @@ public class UserControllerIntegrationTest {
 
 @Test
     void updateUserFailWithNotFoundUser () throws Exception {
+        UpdateUserDto updateUserDto = new UpdateUserDto("test", Role.ADMIN);
 
-    UpdateUserDto updateUserDto = new UpdateUserDto("test", Role.ADMIN);
         mockMvc.perform(MockMvcRequestBuilders.put(baseUrl + "/users/{userId}", 4)
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", token)
@@ -257,10 +355,11 @@ public class UserControllerIntegrationTest {
 
     @Test
     void updateUserFailWithNoPermission () throws Exception {
-
+        // sign in with user role
         logInWithUserRolePermission();
 
         UpdateUserDto updateUserDto = new UpdateUserDto("test", Role.USER);
+
         mockMvc.perform(MockMvcRequestBuilders.put(baseUrl + "/users/{userId}", 3)
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", token)
@@ -276,7 +375,6 @@ public class UserControllerIntegrationTest {
 
     @Test
     void deleteUserSuccess () throws Exception {
-
         mockMvc.perform(MockMvcRequestBuilders.delete(baseUrl + "/users/{userId}", 1)
                         .header("Authorization", token))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -289,7 +387,6 @@ public class UserControllerIntegrationTest {
 
  @Test
     void deleteUserFailWithNoUserFound () throws Exception {
-
         mockMvc.perform(MockMvcRequestBuilders.delete(baseUrl + "/users/{userId}", 4)
                         .header("Authorization", token))
                 .andExpect(MockMvcResultMatchers.status().isNotFound())
@@ -302,17 +399,16 @@ public class UserControllerIntegrationTest {
 
 @Test
     void deleteUserFailWithNoPermission () throws Exception {
-
+        //sign in with user role
         logInWithUserRolePermission();
 
-    mockMvc.perform(MockMvcRequestBuilders.delete(baseUrl + "/users/{userId}", 1)
+        mockMvc.perform(MockMvcRequestBuilders.delete(baseUrl + "/users/{userId}", 1)
                     .header("Authorization", token))
             .andExpect(MockMvcResultMatchers.status().isForbidden())
             .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(false))
             .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
             .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("No permission"))
             .andExpect(MockMvcResultMatchers.jsonPath("$.data").isEmpty());
-
     }
 
 
