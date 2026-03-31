@@ -21,17 +21,18 @@ public class JwtService {
     private final JwtEncoder jwtEncoder;
 
 
-    public  String CreateToken(UserDetails userDetails) {
+    public  String CreateToken(MyUserPrincipal userDetails) {
         Instant now = Instant.now();
         long expiresIn = 2 ; //2 hours
         //authorities claim
-        String authorities = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(""));
+        String authorities = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(" "));
         JwtClaimsSet claims = JwtClaimsSet
                 .builder()
                 .issuer("self")
                 .issuedAt(now)
                 .expiresAt(now.plus(expiresIn, ChronoUnit.HOURS))
                 .subject(userDetails.getUsername())
+                .claim("userId",userDetails.getUser().getId())
                 .claim("authorities", authorities)
                 .build();
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();

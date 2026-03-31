@@ -1,12 +1,14 @@
 package com.ahmed.hogwarts_artifacts_online.user;
 
 
+import com.ahmed.hogwarts_artifacts_online.auth.AuthService;
 import com.ahmed.hogwarts_artifacts_online.system.exceptions.ObjectNotFoundException;
 import com.ahmed.hogwarts_artifacts_online.user.dto.CreateUserDto;
 import com.ahmed.hogwarts_artifacts_online.user.dto.UpdateUserDto;
 import com.ahmed.hogwarts_artifacts_online.user.dto.UserResponseDto;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,8 +21,12 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
+
     private final UserMapper userMapper;
+
     private final PasswordEncoder passwordEncoder;
+
+    private final AuthService authService ;
 
     public UserResponseDto findUserById(int userId) {
         User user = userRepository.findById(userId)
@@ -40,12 +46,20 @@ public class UserService {
         return userMapper.toUserResponseDto(savedUser);
     }
 
-    public UserResponseDto updateUser (int userId,UpdateUserDto updateUserDto) {
+    public UserResponseDto updateUser (int userId, UpdateUserDto updateUserDto) {
         User oldUser = userRepository.findById(userId)
                 .orElseThrow(() -> new ObjectNotFoundException("user", userId));
-        oldUser.setUserName(updateUserDto.userName());
-        oldUser.setRole(updateUserDto.role());
+
+        //check if he has admin role so he can update all fields
+        if (authService.isAdmin()) {
+            oldUser.setUserName(updateUserDto.userName());
+            oldUser.setRole(updateUserDto.role());
+        } else { // if he has user role he can only update username
+            oldUser.setUserName(updateUserDto.userName());
+        }
+
         User savedUser = userRepository.save(oldUser);
+
         return userMapper.toUserResponseDto(savedUser);
     }
 

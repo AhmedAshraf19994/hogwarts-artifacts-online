@@ -51,6 +51,7 @@ public class WizardService {
         Wizard wizard = wizardRepository.findById(wizardId)
                 .orElseThrow(() -> new ObjectNotFoundException("wizard", wizardId));
         wizard.removeAllArtifacts();
+
         wizardRepository.deleteById(wizardId);
     }
 
@@ -58,20 +59,18 @@ public class WizardService {
         // find the wizard
         Wizard wizard = wizardRepository.findById(wizardId)
                 .orElseThrow( () -> new ObjectNotFoundException("wizard", wizardId));
+
         //find the artifact
         Artifact artifact = artifactRepository.findById(artifactId)
                 .orElseThrow(() -> new ObjectNotFoundException("artifact", artifactId));
+
         // assign the artifact to new wizard
-        // check if the artifact already owned by another wizard
-        if (artifact.getWizard() != null) {
+        if (artifact.getWizard() != null) {  // check if the artifact already owned by another wizard
             artifact.getWizard().removeArtifact(artifact);
             wizard.addArtifact(artifact);
         } else {
             wizard.addArtifact(artifact);
-
         }
-
-
     }
 
 

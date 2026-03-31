@@ -29,17 +29,20 @@ class WizardServiceTest {
 
     @Mock
     WizardRepository wizardRepository;
+
     @Mock
     ArtifactRepository artifactRepository;
+
     @Mock
     Wizard wizard;
+
     @Mock
     WizardMapper wizardMapper;
+
     @InjectMocks
     WizardService wizardService;
 
     List<Wizard> wizards = new ArrayList<>();
-
 
 
     @BeforeEach
@@ -72,14 +75,16 @@ class WizardServiceTest {
 
     @Test
     void findWizardByIdFail () {
-        int wizardId = 1 ;
         //given
+        int wizardId = 1 ;
         when(wizardRepository.findById(Mockito.any(Integer.class))).thenReturn(Optional.empty());
-        //then
+
+        //when
         Exception exception = assertThrows(ObjectNotFoundException.class, () -> {
             wizardService.findWizardById(1);
         });
-        //when
+
+        // then
         assertEquals("could not find wizard with id " + wizardId, exception.getMessage());
     }
 
@@ -89,6 +94,7 @@ class WizardServiceTest {
         WizardResponseDto wizardResponseDto = new WizardResponseDto(1, "Harry Potter",6);
         when(wizardRepository.findAll()).thenReturn(wizards);
         when(wizardMapper.toWizardResponseDto(Mockito.any(Wizard.class))).thenReturn(wizardResponseDto);
+
         //when
         List<WizardResponseDto> result = wizardService.findAllWizards();
 
@@ -109,8 +115,10 @@ class WizardServiceTest {
         when(wizardMapper.toWizard(createWizardDto)).thenReturn(wizard);
         when(wizardRepository.save(Mockito.any(Wizard.class))).thenReturn(wizard);
         when(wizardMapper.toWizardResponseDto(Mockito.any(Wizard.class))).thenReturn(wizardResponseDto);
+
         //when
         WizardResponseDto result = wizardService.saveWizard(createWizardDto);
+
         //then
         assertEquals(result.id(),wizardResponseDto.id());
         assertEquals(result.name(),wizardResponseDto.name());
@@ -123,16 +131,20 @@ class WizardServiceTest {
         //given
         int wizardId = 1;
         CreateWizardDto createWizardDto = new CreateWizardDto("Harmony Gringer");
-        Wizard wizard = Wizard.builder().name("Harry Potter").build();
+        Wizard oldWizard = Wizard.builder().name("Harry Potter").build();
+        Wizard savedUser = Wizard.builder().name("Harmony Gringer").build();
         WizardResponseDto wizardResponseDto = new WizardResponseDto(1, "Harmony Gringer", 2);
-         when(wizardRepository.findById(wizardId)).thenReturn(Optional.of(wizard));
-        when(wizardRepository.save(Mockito.any(Wizard.class))).thenReturn(wizard);
+        when(wizardRepository.findById(wizardId)).thenReturn(Optional.of(oldWizard));
+        when(wizardRepository.save(Mockito.any(Wizard.class))).thenReturn(savedUser);
         when(wizardMapper.toWizardResponseDto(Mockito.any(Wizard.class))).thenReturn(wizardResponseDto);
+
         //when
         WizardResponseDto result = wizardService.updateWizard(wizardId,createWizardDto);
+
         //then
-        assertEquals(wizardId, result.id());
-        assertEquals(wizardResponseDto.name(), result.name());
+        assertEquals(1, result.id());
+        assertEquals("Harmony Gringer", oldWizard.getName());
+        assertEquals(result, wizardResponseDto);
         assertEquals(wizardResponseDto.artifactsNumber(), result.artifactsNumber());
     }
 
@@ -146,6 +158,7 @@ class WizardServiceTest {
         //when
         Exception exception = assertThrows(ObjectNotFoundException.class, () ->
                 wizardService.updateWizard(wizardId, createWizardDto));
+
         //then
         assertEquals("could not find wizard with id 1", exception.getMessage());
     }
@@ -158,8 +171,10 @@ class WizardServiceTest {
         WizardResponseDto wizardResponseDto = new WizardResponseDto(1, "Harry Potter", 2);
         when(wizardRepository.findById(Mockito.any(Integer.class))).thenReturn(Optional.of(wizard));
         doNothing().when(wizardRepository).deleteById(wizardId);
+
         //when
         wizardService.deleteWizard(wizardId);
+
         //then
         verify(wizardRepository, times(1)).findById(wizardId);
         verify(wizardRepository, times(1)).deleteById(wizardId);
@@ -170,8 +185,10 @@ class WizardServiceTest {
         //given
         int wizardId = 1;
         when(wizardRepository.findById(Mockito.any(Integer.class))).thenReturn(Optional.empty());
+
         //when
         Exception exception = assertThrows(ObjectNotFoundException.class, () -> wizardService.deleteWizard(wizardId));
+
         //then
         assertEquals("could not find wizard with id 1", exception.getMessage());
         verify(wizardRepository, times(1)).findById(wizardId);
@@ -186,11 +203,13 @@ class WizardServiceTest {
                 .description("the Resurrection Stone had the power to bring back lost loved ones.")
                 .imageUrl("imageUrl").build();
         wizardA.addArtifact(artifact);
+
         when(wizardRepository.findById(Mockito.any(Integer.class))).thenReturn(Optional.of(wizardB));
         when(artifactRepository.findById(Mockito.any(Integer.class))).thenReturn(Optional.of(artifact));
 
         //when
         wizardService.assignArtifact(2,1);
+
         //then
         assertEquals(2, artifact.getWizard().getId());
         assertTrue(wizardB.getArtifacts().contains(artifact));
@@ -203,8 +222,10 @@ class WizardServiceTest {
     void assignArtifactFailWithNoWizardFound () {
         //given
         when(wizardRepository.findById(Mockito.any(Integer.class))).thenReturn(Optional.empty());
+
         //when
         Exception exception = assertThrows(ObjectNotFoundException.class, () -> wizardService.assignArtifact(2,1));
+
         //then
         assertEquals("could not find wizard with id 2", exception.getMessage());
     }
@@ -216,8 +237,10 @@ class WizardServiceTest {
 
         when(wizardRepository.findById(Mockito.any(Integer.class))).thenReturn(Optional.of(wizard));
         when(artifactRepository.findById(Mockito.any(Integer.class))).thenReturn(Optional.empty());
+
         //when
         Exception exception = assertThrows(ObjectNotFoundException.class, () -> wizardService.assignArtifact(2,1));
+
         //then
         assertEquals("could not find artifact with id 1", exception.getMessage());
     }
