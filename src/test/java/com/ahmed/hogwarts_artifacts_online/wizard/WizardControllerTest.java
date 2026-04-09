@@ -1,5 +1,6 @@
 package com.ahmed.hogwarts_artifacts_online.wizard;
 
+import com.ahmed.hogwarts_artifacts_online.client.jwtTokenWhiteListService.JwtTokenWhiteListService;
 import com.ahmed.hogwarts_artifacts_online.system.exceptions.ObjectNotFoundException;
 import com.ahmed.hogwarts_artifacts_online.wizard.dto.CreateWizardDto;
 import com.ahmed.hogwarts_artifacts_online.wizard.dto.WizardResponseDto;
@@ -30,15 +31,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(WizardController.class)
 @ActiveProfiles(value = "dev")
-
 class WizardControllerTest {
 
     @Autowired
     MockMvc mockMvc;
+
     @Autowired
     ObjectMapper objectMapper ;
+
     @MockitoBean
     WizardService wizardService;
+
+    @MockitoBean
+    private JwtTokenWhiteListService jwtTokenWhiteListService;
 
     @Value("${api.endpoint.base-url}")
     String baseUrl;

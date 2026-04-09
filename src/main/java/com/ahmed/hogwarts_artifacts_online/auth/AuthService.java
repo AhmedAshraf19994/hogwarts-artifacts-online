@@ -2,6 +2,8 @@ package com.ahmed.hogwarts_artifacts_online.auth;
 
 import com.ahmed.hogwarts_artifacts_online.auth.dto.AuthRequestDto;
 import com.ahmed.hogwarts_artifacts_online.auth.dto.AuthResponseDto;
+import com.ahmed.hogwarts_artifacts_online.client.jwtTokenWhiteListService.JwtTokenWhiteListService;
+import com.ahmed.hogwarts_artifacts_online.client.jwtTokenWhiteListService.RedisCacheJwtTokenWhiteListService;
 import com.ahmed.hogwarts_artifacts_online.secuirty.JwtService;
 import com.ahmed.hogwarts_artifacts_online.secuirty.MyUserPrincipal;
 import com.ahmed.hogwarts_artifacts_online.user.User;
@@ -14,6 +16,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.TimeUnit;
+
 
 @Service
 @RequiredArgsConstructor
@@ -21,9 +25,14 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final AuthenticationManager authenticationManager;
+
     private final JwtService jwtService;
+
     private final UserMapper userMapper;
+
     private final AuthMapper authMapper;
+
+    private final JwtTokenWhiteListService jwtTokenWhiteListService;
 
     public AuthResponseDto loginUser(AuthRequestDto authRequestDto) {
 
@@ -40,6 +49,9 @@ public class AuthService {
         MyUserPrincipal  myUserPrincipal = authMapper.toMyUserPrincipal(auth);
         //create access token
         String accessToken = jwtService.CreateToken(myUserPrincipal);
+
+        //add the token to redis cache
+        jwtTokenWhiteListService.addToken(user.getId(), accessToken, 2, TimeUnit.HOURS); // 2 hours
 
         return authMapper.toAuthResponseDto(userResponseDto, accessToken);
     }

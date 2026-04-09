@@ -5,8 +5,6 @@ import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.authorization.AuthorizationResult;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.stereotype.Component;
@@ -31,8 +29,6 @@ public class UserRequestAuthorizationManager implements AuthorizationManager<Req
         Authentication authentication = authsupplier.get();
         String userIdFromJwt = ((Jwt)authentication.getPrincipal()).getClaim("userId").toString();
 
-        System.out.println(authentication.getAuthorities());
-
         //check if he has role admin
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
@@ -46,5 +42,6 @@ public class UserRequestAuthorizationManager implements AuthorizationManager<Req
 
         return new AuthorizationDecision(isAdmin || isUser && matchedId);
     }
+
 }
 

@@ -2,6 +2,7 @@ package com.ahmed.hogwarts_artifacts_online.user;
 
 
 import com.ahmed.hogwarts_artifacts_online.system.Response;
+import com.ahmed.hogwarts_artifacts_online.user.dto.ChangePasswordDto;
 import com.ahmed.hogwarts_artifacts_online.user.dto.CreateUserDto;
 import com.ahmed.hogwarts_artifacts_online.user.dto.UpdateUserDto;
 import com.ahmed.hogwarts_artifacts_online.user.dto.UserResponseDto;
@@ -82,6 +83,21 @@ public class UserController {
                 .message("Delete User Success")
                 .data(null)
                 .build();
-
     }
+
+    @PatchMapping("/{userId}/password")
+    public Response<?> changePassword (
+            @PathVariable("userId") int userId,
+            @RequestBody ChangePasswordDto changePasswordDto
+            ) {
+        userService.changePassword(userId, changePasswordDto);
+        return Response
+                .builder()
+                .flag(true)
+                .code(HttpStatus.OK.value())
+                .message("Change Password Success")
+                .data(null)
+                .build();
+    }
+
 }

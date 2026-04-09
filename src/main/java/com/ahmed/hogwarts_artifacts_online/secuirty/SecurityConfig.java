@@ -32,6 +32,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
@@ -55,6 +56,8 @@ public class SecurityConfig {
 
     private final UserRequestAuthorizationManager userRequestAuthorizationManager;
 
+    private final RedisTokenValidationFilter redisTokenValidationFilter;
+
     @Bean
     public SecurityFilterChain securityFilterChain (HttpSecurity http) {
         return http
@@ -67,6 +70,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, baseUrl + "/users").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.PUT, baseUrl + "/users/**").access(userRequestAuthorizationManager)
                         .requestMatchers(HttpMethod.DELETE, baseUrl + "/users/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, baseUrl + "/users/**").access(userRequestAuthorizationManager)
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers(EndpointRequest.to("health", "info","prometheus")).permitAll()
                         .requestMatchers(EndpointRequest.toAnyEndpoint().excluding("health", "info", "prometheus")).hasAuthority("ROLE_ADMIN")
@@ -77,12 +81,12 @@ public class SecurityConfig {
                                 .authenticationEntryPoint(customBearerTokenAuthenticationEntryPoint)
                                 .accessDeniedHandler( customeAccessDeniedHandler)
                                 )
+                .addFilterAfter(redisTokenValidationFilter, BearerTokenAuthenticationFilter.class)
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .build();
     }
-
 
 }

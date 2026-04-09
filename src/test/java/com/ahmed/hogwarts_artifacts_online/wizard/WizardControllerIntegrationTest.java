@@ -3,6 +3,7 @@ package com.ahmed.hogwarts_artifacts_online.wizard;
 
 import com.ahmed.hogwarts_artifacts_online.auth.dto.AuthRequestDto;
 import com.ahmed.hogwarts_artifacts_online.wizard.dto.CreateWizardDto;
+import com.redis.testcontainers.RedisContainer;
 import jakarta.transaction.Transactional;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,6 +21,9 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 import tools.jackson.databind.ObjectMapper;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -26,6 +31,7 @@ import static org.hamcrest.Matchers.hasSize;
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional // for setting the database after every test
+@Testcontainers
 @ActiveProfiles(value = "dev")
 
 public class WizardControllerIntegrationTest {
@@ -40,6 +46,10 @@ public class WizardControllerIntegrationTest {
     String baseUrl;
 
     String token;
+
+    @Container
+    @ServiceConnection
+    static RedisContainer redisContainer = new RedisContainer(DockerImageName.parse("redis:6.2.6"));
 
     @BeforeEach
     void setUp () throws Exception {
