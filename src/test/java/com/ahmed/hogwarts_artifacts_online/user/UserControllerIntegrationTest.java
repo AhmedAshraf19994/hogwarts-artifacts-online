@@ -1,7 +1,9 @@
 package com.ahmed.hogwarts_artifacts_online.user;
 import com.ahmed.hogwarts_artifacts_online.auth.dto.AuthRequestDto;
+import com.ahmed.hogwarts_artifacts_online.user.dto.ChangePasswordDto;
 import com.ahmed.hogwarts_artifacts_online.user.dto.CreateUserDto;
 import com.ahmed.hogwarts_artifacts_online.user.dto.UpdateUserDto;
+import com.redis.testcontainers.RedisContainer;
 import jakarta.transaction.Transactional;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,6 +22,9 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 import tools.jackson.databind.ObjectMapper;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -27,6 +33,7 @@ import static org.hamcrest.Matchers.hasSize;
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional // for reset database after every test
+@Testcontainers
 @ActiveProfiles(value = "dev")
 public class UserControllerIntegrationTest {
 
@@ -40,6 +47,10 @@ public class UserControllerIntegrationTest {
     String baseUrl;
 
     String token;
+
+    @Container
+    @ServiceConnection
+    static RedisContainer redisContainer = new RedisContainer(DockerImageName.parse("redis:6.2.6"));
 
     //to sign in with a user role .
     private void logInWithUserRolePermission () throws Exception {
@@ -409,6 +420,102 @@ public class UserControllerIntegrationTest {
             .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.FORBIDDEN.value()))
             .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("No permission"))
             .andExpect(MockMvcResultMatchers.jsonPath("$.data").isEmpty());
+    }
+
+    @Test
+    @DisplayName("change password success with valid input PATCH")
+    void changePasswordSuccess () throws Exception {
+        //login with user role
+        logInWithUserRolePermission();
+
+        ChangePasswordDto changePasswordDto = new ChangePasswordDto("56789", "Ab123456",
+                "Ab123456");
+
+        mockMvc.perform(MockMvcRequestBuilders.patch(baseUrl + "/users/{userId}/password", 2)
+                        .header("Authorization", token)
+                .content(objectMapper.writeValueAsString(changePasswordDto))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(true))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.OK.value()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Change Password Success"));
+    }
+
+ @Test
+ @DisplayName("change password fail with no found user PATCH")
+    void changePasswordFailWithNoFoundUser () throws Exception {
+     ChangePasswordDto changePasswordDto = new ChangePasswordDto("56789", "Ab123456",
+                "Ab123456");
+
+        mockMvc.perform(MockMvcRequestBuilders.patch(baseUrl + "/users/{userId}/password", 4)
+                        .header("Authorization", token)
+                .content(objectMapper.writeValueAsString(changePasswordDto))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(false))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.NOT_FOUND.value()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("could not find user with id 4"));
+    }
+
+@Test
+@DisplayName("change password fail with old password wrong PATCH")
+    void changePasswordFailWithOldPasswordIsWrong () throws Exception {
+    //login with user role
+    logInWithUserRolePermission();
+
+    ChangePasswordDto changePasswordDto = new ChangePasswordDto("wrongPassword", "Ab123456",
+                "Ab123456");
+
+        mockMvc.perform(MockMvcRequestBuilders.patch(baseUrl + "/users/{userId}/password", 2)
+                        .header("Authorization", token)
+                .content(objectMapper.writeValueAsString(changePasswordDto))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isUnauthorized())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(false))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.UNAUTHORIZED.value()));
+    }
+
+@Test
+@DisplayName("change password fail with new password does not match confirm new password PATCH")
+    void changePasswordFailWithNewPasswordDoesNotMatchNewPassword () throws Exception {
+        //login with user role
+        logInWithUserRolePermission();
+
+        ChangePasswordDto changePasswordDto = new ChangePasswordDto("56789", "Ab123456",
+                "Ab123457");
+
+        mockMvc.perform(MockMvcRequestBuilders.patch(baseUrl + "/users/{userId}/password",2)
+                        .header("Authorization", token)
+                .content(objectMapper.writeValueAsString(changePasswordDto))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(false))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("new password does not match confirm new password"));
+    }
+
+@Test
+@DisplayName("change password fail with new password does not follow password policy PATCH")
+    void changePasswordFailWithNewPasswordDoesNotFollowPasswordPolicy() throws Exception {
+        //login with user role
+        logInWithUserRolePermission();
+
+        ChangePasswordDto changePasswordDto = new ChangePasswordDto("56789", "A123456",
+                "A123456");
+
+        mockMvc.perform(MockMvcRequestBuilders.patch(baseUrl + "/users/{userId}/password",2)
+                        .header("Authorization", token)
+                .content(objectMapper.writeValueAsString(changePasswordDto))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(false))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("new password does not follow password policy"));
     }
 
 

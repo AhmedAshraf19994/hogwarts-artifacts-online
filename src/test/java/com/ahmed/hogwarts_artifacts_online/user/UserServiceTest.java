@@ -1,7 +1,10 @@
 package com.ahmed.hogwarts_artifacts_online.user;
 
 import com.ahmed.hogwarts_artifacts_online.auth.AuthService;
+import com.ahmed.hogwarts_artifacts_online.client.jwtTokenWhiteListService.JwtTokenWhiteListService;
+import com.ahmed.hogwarts_artifacts_online.system.exceptions.ChangePasswordIllegalArgumentException;
 import com.ahmed.hogwarts_artifacts_online.system.exceptions.ObjectNotFoundException;
+import com.ahmed.hogwarts_artifacts_online.user.dto.ChangePasswordDto;
 import com.ahmed.hogwarts_artifacts_online.user.dto.CreateUserDto;
 import com.ahmed.hogwarts_artifacts_online.user.dto.UpdateUserDto;
 import com.ahmed.hogwarts_artifacts_online.user.dto.UserResponseDto;
@@ -12,12 +15,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -36,6 +41,9 @@ class UserServiceTest {
 
     @Mock
     PasswordEncoder passwordEncoder;
+
+    @Mock
+    JwtTokenWhiteListService jwtTokenWhiteListService;
 
     @InjectMocks
     UserService userService;
@@ -191,6 +199,105 @@ class UserServiceTest {
         verify(userRepository, times(1)).findById(1);
     }
 
+    @Test
+    void changePasswordSuccess () {
+        //given
+        ChangePasswordDto changePasswordDto = new ChangePasswordDto("Ab123456", "Bb123456", "Bb123456");
+        int userId = 1;
+        User oldUser = User.builder().password("encryptedOldPassword").build();
+        User newUser = User.builder().password("encryptedNewPassword").build();
 
+        when(userRepository.findById(userId)).thenReturn(Optional.of(oldUser));
+        when(passwordEncoder.matches(anyString(),anyString())).thenReturn(true);
+        when(passwordEncoder.encode(anyString())).thenReturn("encryptedNewPassword");
+        when(userRepository.save(Mockito.any(User.class))).thenReturn(newUser);
+        doNothing().when(jwtTokenWhiteListService).removeToken(anyInt());
+
+        //when
+        userService.changePassword(userId, changePasswordDto);
+
+        //then
+        assertEquals("encryptedNewPassword",oldUser.getPassword());
+        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).save(oldUser);
+
+    }
+
+    @Test
+    void changePasswordFailWithNoFoundUserById () {
+        //given
+        ChangePasswordDto changePasswordDto = new ChangePasswordDto("Ab123456", "Bb123456", "Bb123456");
+        int userId = 1;
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        //when
+        Exception exception = assertThrows(ObjectNotFoundException.class, () -> {
+            userService.changePassword(userId, changePasswordDto);
+        });
+
+        //then
+        assertEquals("could not find user with id 1", exception.getMessage());
+        verify(userRepository, times(1)).findById(userId);
+
+    }
+
+    @Test
+    void changePasswordFailWithWrongOldPassword () {
+        //given
+        ChangePasswordDto changePasswordDto = new ChangePasswordDto("Ab123456", "Bb123456", "Bb123456");
+        User user = User.builder().password("encryptedPassword").build();
+        int userId = 1;
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(anyString(),anyString())).thenReturn(false);
+
+        //when
+        Exception exception = assertThrows(BadCredentialsException.class, () -> {
+            userService.changePassword(userId, changePasswordDto);
+        });
+
+        //then
+        assertEquals("password is wrong", exception.getMessage());
+        verify(userRepository,times(1)).findById(userId);
+    }
+
+ @Test
+    void changePasswordFailWithNewPasswordDoesNotMatchConfirmNewPassword () {
+        //given
+         ChangePasswordDto changePasswordDto = new ChangePasswordDto("Ab123456", "Bb123457", "Bb123456");
+         User user = User.builder().password("encryptedPassword").build();
+         int userId = 1;
+
+         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+         when(passwordEncoder.matches(anyString(),anyString())).thenReturn(true);
+
+        //when
+         Exception exception = assertThrows(ChangePasswordIllegalArgumentException.class, () -> {
+             userService.changePassword(userId, changePasswordDto);
+         });
+
+        //then
+        assertEquals("new password does not match confirm new password", exception.getMessage());
+    }
+
+    @Test
+    void changePasswordFailWithNewPasswordDoesNotFollowPasswordPolicy () {
+        //given
+        ChangePasswordDto changePasswordDto = new ChangePasswordDto("Ab123456", "B123457", "B123457");
+        User user = User.builder().password("encryptedPassword").build();
+        int userId = 1;
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(anyString(),anyString())).thenReturn(true);
+
+        //when
+        Exception exception = assertThrows(ChangePasswordIllegalArgumentException.class, () -> {
+            userService.changePassword(userId, changePasswordDto);
+        });
+
+        //then
+        assertEquals("new password does not follow password policy", exception.getMessage());
+    }
 
 }

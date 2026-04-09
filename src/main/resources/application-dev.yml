@@ -3,6 +3,10 @@ spring :
     url: "jdbc:h2:mem:hogwarts"
     username: sa
     password:
+  data:
+    redis:
+      host: localhost
+      port: 6379
 #  cloud:
 #    azure:
 #      storage:

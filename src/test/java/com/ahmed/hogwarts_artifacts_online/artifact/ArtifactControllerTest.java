@@ -3,6 +3,7 @@ package com.ahmed.hogwarts_artifacts_online.artifact;
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.ArtifactResponseDto;
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.CreateArtifactDto;
 import com.ahmed.hogwarts_artifacts_online.artifact.dto.PageResponseDto;
+import com.ahmed.hogwarts_artifacts_online.client.jwtTokenWhiteListService.JwtTokenWhiteListService;
 import com.ahmed.hogwarts_artifacts_online.system.exceptions.ObjectNotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,6 +47,9 @@ class ArtifactControllerTest {
 
     @MockitoBean
     ArtifactMapper artifactMapper;
+
+    @MockitoBean
+    private JwtTokenWhiteListService jwtTokenWhiteListService;
 
     @Value("${api.endpoint.base-url}")
     String baseUrl;

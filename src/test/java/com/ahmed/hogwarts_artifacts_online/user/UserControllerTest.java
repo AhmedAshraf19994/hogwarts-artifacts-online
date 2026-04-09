@@ -1,5 +1,6 @@
 package com.ahmed.hogwarts_artifacts_online.user;
 
+import com.ahmed.hogwarts_artifacts_online.client.jwtTokenWhiteListService.JwtTokenWhiteListService;
 import com.ahmed.hogwarts_artifacts_online.system.exceptions.ObjectNotFoundException;
 import com.ahmed.hogwarts_artifacts_online.user.dto.CreateUserDto;
 import com.ahmed.hogwarts_artifacts_online.user.dto.UpdateUserDto;
@@ -36,6 +37,7 @@ class UserControllerTest {
 
     @Autowired
     MockMvc mockMvc;
+
     @Value("${api.endpoint.base-url}")
     String baseUrl;
 
@@ -45,7 +47,8 @@ class UserControllerTest {
     @MockitoBean
     UserService userService;
 
-
+    @MockitoBean
+    private JwtTokenWhiteListService jwtTokenWhiteListService;
 
 
     @Test
@@ -130,8 +133,8 @@ class UserControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.flag").value(false))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("provided arguments are not valid, check data for details"))
-   ;
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message")
+                        .value("provided arguments are not valid, check data for details"));
     }
 
     @Test
@@ -171,8 +174,6 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.code").value(HttpStatus.NOT_FOUND.value()))
                 .andExpect(jsonPath("$.message").value("could not find user with id 1"))
                 .andExpect(jsonPath("$.data").isEmpty());
-
-
     }
 
     @Test
@@ -189,8 +190,6 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.flag").value(false))
                 .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value()))
                 .andExpect(jsonPath("$.message").value("provided arguments are not valid, check data for details"));
-
-
     }
 
     @Test
@@ -219,7 +218,6 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.code").value(HttpStatus.NOT_FOUND.value()))
                 .andExpect(jsonPath("$.message").value("could not find user with id 1"))
                 .andExpect(jsonPath("$.data").isEmpty());
-
     }
 
 }

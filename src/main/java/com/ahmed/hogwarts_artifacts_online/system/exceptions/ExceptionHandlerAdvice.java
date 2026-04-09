@@ -143,4 +143,16 @@ public class ExceptionHandlerAdvice {
                 .build();
     }
 
+    @ExceptionHandler(ChangePasswordIllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    Response<?> ChangePasswordIllegalArgumentException (ChangePasswordIllegalArgumentException exception) {
+        return Response
+                .builder()
+                .flag(false)
+                .code(HttpStatus.BAD_REQUEST.value())
+                .message(exception.getMessage())
+                .data(null)
+                .build();
+    }
+
 }
